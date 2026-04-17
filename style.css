@@ -1,0 +1,268 @@
+/* --- VOLTPY PREMIUM SMM UI (V2 - AUTOMATIC) --- */
+:root {
+    --bg-color: #0f172a; 
+    --card-bg: #1e293b;
+    --accent-color: #00ff88; 
+    --text-color: #f8fafc;
+    --hint-color: #94a3b8;
+    --gold: #fbbf24;
+    --error: #ef4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* --- HEADER (KAYIT BUTONU KALDIRILDI) --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(15, 23, 42, 0.95);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-info { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.user-info i { color: var(--accent-color); font-size: 20px; }
+
+.balance-container {
+    background: var(--card-bg);
+    padding: 8px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.balance-container i { color: var(--gold); }
+
+/* --- EKRAN YÖNETİMİ --- */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.screen.active {
+    display: flex !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* --- ANA EKRAN (VOLT BUTONU) --- */
+#home-screen {
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 110px;
+}
+
+.coin-wrapper {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, var(--accent-color) 0%, #008844 100%);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+    cursor: pointer;
+    transition: transform 0.05s;
+}
+
+.coin-wrapper:active { transform: scale(0.92); }
+
+.coin-inner {
+    width: 220px;
+    height: 220px;
+    border: 5px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.coin-inner i { font-size: 70px; color: white; }
+.coin-inner span { font-size: 24px; font-weight: 900; color: white; margin-top: 5px; }
+
+/* ENERJİ BARI */
+.energy-section { width: 100%; max-width: 350px; }
+.energy-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: bold; }
+.energy-bar-container {
+    height: 12px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.energy-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent-color), #00ffcc);
+    transition: width 0.3s ease;
+}
+
+/* --- ŞANSLI VOLT (ÇARK TASARIMI) --- */
+.wheel-main-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background: var(--accent-color);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    z-index: 100;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid var(--card-bg);
+    position: relative;
+    overflow: hidden;
+    background: var(--card-bg);
+    transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.segment {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    transform-origin: 100% 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+}
+
+/* Dilimlerin arka planlarını sırayla renklendiriyoruz */
+.segment:nth-child(odd) { background: #1e293b; }
+.segment:nth-child(even) { background: #334155; }
+
+.segment span {
+    display: block;
+    width: 40px;
+}
+
+/* --- ALT MENÜ --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 10px 30px;
+    background: rgba(30, 41, 59, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 20px 20px 0 0;
+    z-index: 2000;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--hint-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    flex: 1;
+}
+
+.nav-btn i { font-size: 22px; }
+.nav-btn.active { color: var(--accent-color); }
+
+/* BUTONLAR */
+.action-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-weight: 900;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.action-btn:active { transform: scale(0.95); }
+
+/* MARKET LİSTESİ */
+.market-item {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.plus-one {
+    position: fixed;
+    color: var(--accent-color);
+    font-size: 28px;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 0.8s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-120px); }
+}
