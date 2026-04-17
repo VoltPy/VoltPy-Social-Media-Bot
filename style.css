@@ -1,85 +1,95 @@
 /* VOLTPY SMM BOT - NİHAİ STYLE.CSS 
-    Geliştirici: Berke (VoltPy)
+    Tüm Arayüz Hataları Giderilmiş Sürüm
 */
 
+/* 1. GENEL AYARLAR */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    user-select: none; /* Metin seçimini engelle */
+    -webkit-tap-highlight-color: transparent; /* Mobil dokunma gölgesini kaldır */
 }
 
 body {
-    background-color: #0f172a; /* Koyu Lacivert Arka Plan */
+    background-color: #0f172a; /* Derin Uzay Mavisi */
     color: #ffffff;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    overflow: hidden; /* Dış kaydırmayı engelle, sadece screen içini kaydır */
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Dış kaydırmayı kapat, screen içini aç */
 }
 
 #app {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    width: 100vw;
 }
 
-/* ÜST BİLGİ PANELİ */
+/* 2. ÜST PANEL (USER & BALANCE) */
 .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
 }
 
 .user-info {
     font-weight: 800;
     color: #00ff88;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
 .balance-container {
     font-size: 18px;
     font-weight: 900;
     color: #00ff88;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-/* ENERJİ BÖLÜMÜ */
+/* 3. ENERJİ BÖLÜMÜ */
 .energy-section {
     padding: 10px 20px;
+    background: rgba(15, 23, 42, 0.5);
 }
 
 .energy-bar-bg {
     width: 100%;
-    height: 10px;
+    height: 12px;
     background: #1e293b;
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #energy-bar {
     height: 100%;
-    background: linear-gradient(to right, #00ff88, #00d4ff);
+    background: linear-gradient(90deg, #00ff88, #00d4ff);
     width: 100%;
-    transition: width 0.3s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .energy-info {
-    text-align: center;
-    font-size: 11px;
-    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
     margin-top: 5px;
+    font-size: 11px;
     font-weight: bold;
+    color: #94a3b8;
 }
 
-/* ANA EKRANLAR */
+/* 4. ANA EKRAN YAPISI */
 main {
     flex: 1;
     position: relative;
+    overflow: hidden;
 }
 
 .screen {
@@ -91,69 +101,62 @@ main {
     height: 100%;
     padding: 20px;
     overflow-y: auto;
-    padding-bottom: 120px; /* Menünün altında kalmayı engeller */
+    padding-bottom: 140px; /* Menünün altında kalmayı engellemek için KRİTİK alan */
 }
 
 .screen.active {
-    display: block;
-}
-
-.screen-title {
-    text-align: center;
-    font-size: 22px;
-    margin-bottom: 20px;
-    color: #00ff88;
-    font-weight: 900;
-}
-
-/* TAPPER EKRANI */
-#home {
-    display: none;
-    justify-content: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-#home.active {
-    display: flex;
+.screen-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #00ff88;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+/* 5. TAPPER EKRANI */
+#home {
+    justify-content: center;
 }
 
 #tap-button-container {
-    transform: translateY(-20px);
+    position: relative;
 }
 
 #tap-button {
-    width: 220px;
-    height: 220px;
+    width: 240px;
+    height: 240px;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 8px solid #1e293b;
-    box-shadow: 0 0 50px rgba(0, 255, 136, 0.1);
+    border: 10px solid #1e293b;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.1);
     cursor: pointer;
-    transition: transform 0.1s active;
+    transition: transform 0.05s linear;
 }
 
 #tap-button:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
 }
 
 #tap-button img {
-    width: 140px;
+    width: 130px;
     pointer-events: none;
 }
 
-/* KAZAN (ÇARK) EKRANI */
-#earn {
-    text-align: center;
-}
-
+/* 6. ÇARK (LUCKY WHEEL) EKRANI */
 .wheel-outer {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 310px;
+    height: 310px;
     margin: 10px auto;
+    flex-shrink: 0;
 }
 
 .wheel-pointer {
@@ -166,8 +169,8 @@ main {
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-top: 30px solid #ff4444;
-    z-index: 10;
-    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+    z-index: 20;
+    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
 }
 
 #wheel-canvas {
@@ -175,22 +178,22 @@ main {
     height: 100%;
     border-radius: 50%;
     border: 6px solid #1e293b;
-    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 #reward-display {
-    height: 40px;
-    margin: 10px 0;
+    min-height: 45px;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin: 10px 0;
 }
 
 #reward-text {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 900;
     color: #00ff88;
-    text-shadow: 0 0 10px rgba(0,255,136,0.6);
+    text-shadow: 0 0 12px rgba(0,255,136,0.6);
 }
 
 .button-group {
@@ -198,20 +201,20 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 #spin-button {
-    width: 80%;
-    padding: 16px;
-    border-radius: 30px;
+    width: 85%;
+    padding: 18px;
+    border-radius: 35px;
     border: none;
     background: linear-gradient(45deg, #00ff88, #00bd65);
     color: #0f172a;
     font-weight: 900;
     font-size: 18px;
-    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-    transition: transform 0.1s;
+    box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3);
+    transition: 0.2s;
 }
 
 #spin-button:active {
@@ -224,11 +227,15 @@ main {
     box-shadow: none;
 }
 
-/* MARKET EKRANI */
+/* 7. MARKET EKRANI */
+#market-list {
+    width: 100%;
+}
+
 .market-item {
     background: #1e293b;
-    border-radius: 15px;
-    padding: 15px;
+    border-radius: 20px;
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -240,24 +247,25 @@ main {
     background: #00ff88;
     color: #0f172a;
     border: none;
-    padding: 8px 15px;
-    border-radius: 10px;
+    padding: 10px 18px;
+    border-radius: 12px;
     font-weight: 800;
     font-size: 14px;
 }
 
-/* ALT NAVİGASYON */
+/* 8. ALT NAVİGASYON (FIXED) */
 .bottom-nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(15px);
-    padding: 10px 0 25px 0; /* Alttan boşluk Telegram barı için */
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
+    padding: 12px 0 30px 0; /* Telegram alt barı için extra padding */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     position: fixed;
     bottom: 0;
     width: 100%;
+    z-index: 1000;
 }
 
 .nav-btn {
@@ -267,9 +275,9 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    transition: 0.3s;
+    gap: 6px;
     width: 33%;
+    transition: 0.3s;
 }
 
 .nav-btn.active {
@@ -277,19 +285,20 @@ main {
 }
 
 .nav-icon {
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .nav-text {
     font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* ANİMASYONLAR */
+/* 9. ANİMASYONLAR VE EFEKTLER */
 @keyframes fadeOutUp {
     0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-50px); }
+    100% { opacity: 0; transform: translateY(-70px); }
 }
 
 .plus-one {
@@ -297,7 +306,13 @@ main {
     pointer-events: none;
     color: #00ff88;
     font-weight: 900;
-    font-size: 24px;
-    animation: fadeOutUp 0.8s forwards;
+    font-size: 26px;
     z-index: 9999;
+    animation: fadeOutUp 0.8s ease-out forwards;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+/* Kaydırma Çubuğunu Gizle */
+::-webkit-scrollbar {
+    display: none;
 }
