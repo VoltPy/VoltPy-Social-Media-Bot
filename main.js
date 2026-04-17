@@ -1,7 +1,7 @@
 /**
- * VOLTPY CASINO & TAPPER - NİHAİ ANA DOSYA (V8)
+ * VOLTPY CASINO & TAPPER - V9
  * Geliştirici: Berke (VoltPy)
- * Özellikler: Ayrılmış Turbo & Enerji, Progressive Cost, X3 Frenzy, Saatlik Reklam Limiti
+ * Düzeltmeler: String parantez hatası, UI senkronu, Gelişmiş Tapper Mantığı
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -35,7 +35,7 @@ let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, firstLoad = false, lastUpdate = Date.now();
 let autoClickInterval = null;
 
-// 3. 🎰 ÖDÜL TABLOSU (8 DİLİM)
+// 3. 🎰 ÖDÜL TABLOSU
 const rewards = [
     { text: "BOŞ", val: 0, weight: 150 },
     { text: "10 💰", val: 10, weight: 200 },
@@ -47,7 +47,7 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 4. 📡 CANLI VERİ VE SENKRONİZASYON
+// 4. 📡 FIREBASE VERİ SENKRONİZASYONU
 if (userId) {
     onValue(ref(db, 'users/' + userId), (snapshot) => {
         const data = snapshot.val();
@@ -58,10 +58,8 @@ if (userId) {
             adCount = data.adCount || 0;
             const savedAdHour = data.lastAdHour || new Date().getHours();
 
-            // Saatlik reklam limitini kontrol et
             if (new Date().getHours() !== savedAdHour) { adCount = 0; }
 
-            // Çevrimdışı dolan enerji (1⚡ / 60sn)
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
             const elapsedMins = Math.floor((Date.now() - savedTime) / 60000);
@@ -77,33 +75,35 @@ if (userId) {
     });
 }
 
-// 5. ⏳ SANİYELİK SAYAÇLAR (Enerji & Free Spin)
+// 5. ⏳ SAYAÇLAR (Enerji & Free Spin & Bug Düzeltme)
 function tick() {
     const now = Date.now();
-    
-    // Ücretsiz Hak Sayacı
     const freeWait = 24 * 60 * 60 * 1000;
     const diff = freeWait - (now - lastFreeSpin);
     const timerVal = document.getElementById('timer-val');
     const spinBtn = document.getElementById('spin-button');
     const cost = Math.min(500, 100 + (spinCount * 50));
 
-    if (freeRoundsLeft > 0) {
-        spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
-        spinBtn.style.background = "linear-gradient(45deg, #f59e0b, #ef4444)";
-        if (timerVal) timerVal.textContent = "🔥 FRENZY MODU 🔥";
-    } else if (diff <= 0) {
-        spinBtn.textContent = "ÜCRETSİZ ÇEVİR";
-        spinBtn.style.background = "linear-gradient(45deg, #00ff88, #00d4ff)";
-        if (timerVal) timerVal.textContent = "HAKKIN HAZIR!";
-    } else {
-        const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-        if (timerVal) timerVal.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        spinBtn.textContent = `ÇEVİR (${cost} 💰)`;
-        spinBtn.style.background = "";
+    if (spinBtn) {
+        if (freeRoundsLeft > 0) {
+            spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
+            spinBtn.style.background = "linear-gradient(45deg, #f59e0b, #ef4444)";
+            if (timerVal) timerVal.textContent = "🔥 BONUS TUR 🔥";
+        } else if (diff <= 0) {
+            spinBtn.textContent = "ÜCRETSİZ ÇEVİR";
+            spinBtn.style.background = "linear-gradient(45deg, #00ff88, #00d4ff)";
+            if (timerVal) timerVal.textContent = "HAKKIN HAZIR!";
+        } else {
+            // BUG DÜZELTİLDİ: Parantez kapatıldı
+            spinBtn.textContent = `ÇEVİR (${cost} 💰)`; 
+            spinBtn.style.background = "";
+            if (timerVal) {
+                const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+                timerVal.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }
+        }
     }
 
-    // Enerji Regen Sayacı
     const regenText = document.getElementById('energy-regen-timer');
     if (currentEnergy < 500) {
         const nextIn = 60 - Math.floor(((now - lastUpdate) / 1000) % 60);
@@ -115,69 +115,68 @@ function tick() {
 }
 setInterval(tick, 1000);
 
-// 6. 🎡 ÇARK DÖNDÜRME ( Progressive Cost & Milimetrik Landing )
-document.getElementById('spin-button').onclick = () => {
-    if (isSpinning) return;
-    const now = Date.now();
-    const isDailyFree = (now - lastFreeSpin >= 24 * 60 * 60 * 1000);
-    const cost = Math.min(500, 100 + (spinCount * 50));
+// 6. 🎡 ÇARK MANTIĞI
+if (document.getElementById('spin-button')) {
+    document.getElementById('spin-button').onclick = () => {
+        if (isSpinning) return;
+        const now = Date.now();
+        const isDailyFree = (now - lastFreeSpin >= 24 * 60 * 60 * 1000);
+        const cost = Math.min(500, 100 + (spinCount * 50));
 
-    if (freeRoundsLeft > 0) {
-        freeRoundsLeft--;
-    } else if (isDailyFree) {
-        lastFreeSpin = now;
-        spinCount = 0; // Ücretsiz hak kullanılınca zammı sıfırla
-    } else {
-        if (balance < cost) {
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            return alert("Bakiye Yetersiz!");
+        if (freeRoundsLeft > 0) {
+            freeRoundsLeft--;
+        } else if (isDailyFree) {
+            lastFreeSpin = now;
+            spinCount = 0;
+        } else {
+            if (balance < cost) return alert("Bakiye Yetersiz!");
+            balance -= cost;
+            spinCount++;
         }
-        balance -= cost;
-        spinCount++;
-    }
 
-    isSpinning = true;
-    document.getElementById('reward-text').style.display = 'none';
-    updateUI(); bulutaYaz();
-
-    let totalW = rewards.reduce((s, r) => s + r.weight, 0);
-    let rand = Math.random() * totalW;
-    let pIdx = 0;
-    for (let i = 0; i < rewards.length; i++) { if (rand < rewards[i].weight) { pIdx = i; break; } rand -= rewards[i].weight; }
-
-    const prize = rewards[pIdx];
-    const seg = 360 / rewards.length;
-    const startA = currentRotation % 360;
-    const targetA = (360 - (pIdx * seg)) - (seg / 2); // Tam merkez
-    const totalS = currentRotation + (360 * 6) + ((targetA - startA + 360) % 360);
-
-    currentRotation = totalS;
-    const canvas = document.getElementById('wheel-canvas');
-    canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.1, 1)';
-    canvas.style.transform = `rotate(${currentRotation}deg)`;
-
-    setTimeout(() => {
-        isSpinning = false;
-        if (prize.type === "frenzy") { 
-            freeRoundsLeft = 3; 
-            document.body.style.boxShadow = "inset 0 0 80px #ef4444";
-            setTimeout(() => document.body.style.boxShadow = "none", 1000);
-        }
-        else if (prize.type === "energy") { currentEnergy = 500; }
-        else { balance += prize.val; }
-        
+        isSpinning = true;
+        document.getElementById('reward-text').style.display = 'none';
         updateUI(); bulutaYaz();
-        const rt = document.getElementById('reward-text');
-        rt.textContent = prize.type === "frenzy" ? "🔥 X3 BONUS KAZANDIN! 🔥" : `KAZANÇ: ${prize.text}`;
-        rt.style.display = 'block';
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    }, 5100);
-};
 
-// 7. 🚀 AYRILMIŞ BUTON FONKSİYONLARI (REKLAM & TURBO)
+        let totalW = rewards.reduce((s, r) => s + r.weight, 0);
+        let rand = Math.random() * totalW;
+        let pIdx = 0;
+        for (let i = 0; i < rewards.length; i++) { if (rand < rewards[i].weight) { pIdx = i; break; } rand -= rewards[i].weight; }
+
+        const prize = rewards[pIdx];
+        const seg = 360 / rewards.length;
+        const startA = currentRotation % 360;
+        const targetA = (360 - (pIdx * seg)) - (seg / 2);
+        const totalS = currentRotation + (360 * 6) + ((targetA - startA + 360) % 360);
+
+        currentRotation = totalS;
+        const canvas = document.getElementById('wheel-canvas');
+        canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.1, 1)';
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        setTimeout(() => {
+            isSpinning = false;
+            if (prize.type === "frenzy") { 
+                freeRoundsLeft = 3; 
+                document.body.style.boxShadow = "inset 0 0 60px #ef4444";
+                setTimeout(() => document.body.style.boxShadow = "none", 1200);
+            }
+            else if (prize.type === "energy") { currentEnergy = 500; }
+            else { balance += prize.val; }
+            
+            updateUI(); bulutaYaz();
+            const rt = document.getElementById('reward-text');
+            rt.textContent = prize.type === "frenzy" ? "🔥 X3 BONUS KAZANDIN! 🔥" : `KAZANÇ: ${prize.text}`;
+            rt.style.display = 'block';
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }, 5100);
+    };
+}
+
+// 7. 🚀 REKLAM VE TURBO (SADECE HOME'DA AKTİF)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
-    if (confirm("+250 Enerji için reklam izlemek ister misin?")) {
+    if (confirm("+250 Enerji için reklam izlensin mi?")) {
         currentEnergy = Math.min(500, currentEnergy + 250);
         updateUI(); bulutaYaz();
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -186,12 +185,11 @@ window.watchAdForEnergy = () => {
 
 window.startTurboMode = () => {
     if (isAutoClicking || isSpinning) return;
-    if (adCount >= 20) return alert("Saatlik limit (20/20) doldu!");
-    if (currentEnergy < 100) return alert("Turbo için en az 100 enerji gerekli!");
+    if (adCount >= 20) return alert("Saatlik limit doldu!");
+    if (currentEnergy < 100) return alert("Turbo için en az 100 enerji lazım!");
 
-    if (confirm("Otomasyon başlasın mı? (Enerjin bitene kadar seri tıklar)")) {
+    if (confirm("Otomasyon başlasın mı?")) {
         adCount++;
-        lastAdHour = new Date().getHours();
         startAutoClicker();
         updateUI(); bulutaYaz();
     }
@@ -201,18 +199,16 @@ function startAutoClicker() {
     isAutoClicking = true;
     document.body.classList.add('turbo-active');
     document.getElementById('turbo-status').style.display = 'block';
-    document.querySelector('.bottom-nav').style.pointerEvents = 'none'; // Çıkışı kilitle
+    document.querySelector('.bottom-nav').style.pointerEvents = 'none';
 
     autoClickInterval = setInterval(() => {
         if (currentEnergy > 0) {
             balance++; currentEnergy--; updateUI();
-            
             const p = document.createElement('div'); p.innerText = '+1'; p.className = 'plus-one';
             p.style.left = (window.innerWidth / 2 + (Math.random()*60-30)) + 'px';
             p.style.top = (window.innerHeight / 2 + (Math.random()*60-30)) + 'px';
             document.body.appendChild(p); setTimeout(() => p.remove(), 500);
-            
-            if (currentEnergy % 20 === 0) bulutaYaz(); // Performans için 20 tıkta bir yaz
+            if (currentEnergy % 20 === 0) bulutaYaz();
         } else { stopAutoClicker(); }
     }, 85);
 }
@@ -225,7 +221,6 @@ function stopAutoClicker() {
     document.querySelector('.bottom-nav').style.pointerEvents = 'auto';
     bulutaYaz();
     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    alert("⚡ Turbo bitti! Enerji tükendi.");
 }
 
 // 8. 🎨 ÇARK ÇİZİMİ
@@ -244,7 +239,7 @@ function drawWheel() {
     }
 }
 
-// 9. ✍️ FIREBASE KAYIT VE UI GÜNCELLEME
+// 9. ✍️ FIREBASE KAYDI
 function bulutaYaz() {
     if (!userId) return;
     set(ref(db, 'users/' + userId), {
@@ -254,16 +249,14 @@ function bulutaYaz() {
 }
 
 function updateUI() {
-    const ids = { balance: 'balance', energyText: 'energy-text', energyBar: 'energy-bar', adCount: 'ad-count' };
-    Object.entries(ids).forEach(([key, id]) => {
-        const el = document.getElementById(id);
-        if (el) {
-            if (key === 'balance') el.textContent = balance;
-            if (key === 'energyText') el.textContent = `${currentEnergy} / 500`;
-            if (key === 'energyBar') el.style.width = `${(currentEnergy / 500) * 100}%`;
-            if (key === 'adCount') el.textContent = adCount;
-        }
-    });
+    const b = document.getElementById('balance');
+    const et = document.getElementById('energy-text');
+    const eb = document.getElementById('energy-bar');
+    const ac = document.getElementById('ad-count');
+    if (b) b.textContent = balance;
+    if (et) et.textContent = `${currentEnergy} / 500`;
+    if (eb) eb.style.width = `${(currentEnergy / 500) * 100}%`;
+    if (ac) ac.textContent = adCount;
 }
 
 // 10. TAPPER VE NAVİGASYON
@@ -290,5 +283,4 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     };
 });
 
-// BAŞLAT
 drawWheel(); updateUI();
