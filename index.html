@@ -44,7 +44,7 @@
 
         .wheel-pointer {
             position: absolute;
-            top: -10px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
@@ -53,6 +53,7 @@
             border-right: 15px solid transparent;
             border-top: 30px solid #ff4444;
             z-index: 10;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
         }
 
         #reward-display {
@@ -72,15 +73,17 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-        /* TAŞMA SORUNUNU ÇÖZEN EKRAN AYARI */
-        .screen {
-            padding-bottom: 120px; /* Menünün altında kalmayı engeller */
-            overflow-y: auto;
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
+        /* GÜNLÜK SAYACIN TASARIMI */
+        #free-spin-timer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
         }
     </style>
 </head>
@@ -121,7 +124,7 @@
                 </div>
             </section>
 
-            <section id="earn" class="screen">
+            <section id="earn" class="screen" style="text-align: center;">
                 <h2 class="screen-title">🎰 Şans Çarkı</h2>
                 
                 <div class="wheel-outer">
@@ -131,6 +134,10 @@
 
                 <div id="reward-display">
                     <span id="reward-text"></span>
+                </div>
+
+                <div id="free-spin-timer">
+                    Ücretsiz hak: <span id="timer-val">Bekleyin...</span>
                 </div>
 
                 <div class="button-group">
