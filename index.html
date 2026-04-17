@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoltPy SMM Panel</title>
+    <title>VoltPy | SMM Bot</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,9 +24,6 @@
                     <i class="fa-solid fa-coins"></i>
                     <span id="balance">0</span>
                 </div>
-                <button id="save-btn" class="save-btn" title="Kaydet">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </button>
             </div>
         </header>
 
@@ -34,6 +32,68 @@
                 <div id="tap-button" class="coin-wrapper">
                     <div class="coin-inner">
                         <i class="fa-solid fa-bolt-lightning"></i>
+                        <span>VOLT</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="energy-section">
+                <div class="energy-info">
+                    <i class="fa-solid fa-battery-three-quarters"></i>
+                    <span id="energy-text">500 / 500</span>
+                </div>
+                <div class="energy-bar-container">
+                    <div id="energy-bar" class="energy-bar-fill"></div>
+                </div>
+            </div>
+        </main>
+
+        <main id="ads-screen" class="screen">
+            <div class="screen-header">
+                <h2>Şanslı Volt</h2>
+                <p>Eğlencesine çevir, Voltları topla!</p>
+            </div>
+            
+            <div class="wheel-box">
+                <div class="wheel-pointer"></div>
+                <div id="lucky-wheel" class="wheel">
+                    </div>
+            </div>
+            
+            <button id="spin-button" class="action-btn">
+                <i class="fa-solid fa-rotate"></i> 100 💰 ÇEVİR
+            </button>
+        </main>
+
+        <main id="market-screen" class="screen">
+            <div class="screen-header">
+                <h2>Volt Market</h2>
+                <p>Bakiyeni SMM hizmetlerine dönüştür.</p>
+            </div>
+            <div id="market-list" class="market-list">
+                </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="home-screen">
+                <i class="fa-solid fa-hand-pointer"></i>
+                <span>Tıkla</span>
+            </button>
+            <button class="nav-btn" data-target="ads-screen">
+                <i class="fa-solid fa-clover"></i>
+                <span>Kazan</span>
+            </button>
+            <button class="nav-btn" data-target="market-screen">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>Market</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
                         <span>VOLT</span>
                     </div>
                 </div>
