@@ -1,6 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V24 (KESİN ÇÖZÜM)
- * Buton zorla aşağı itildi.
+ * VOLTPY TAPPER & CASINO - V25 NİHAİ GÖRSEL PAKET (KESİN YERLEŞİM)
+ * Geliştirici: Berke (VoltPy)
+ * Fokus: Tapper butonunu zorla merkeze itmek, VIP Ödül Kartı, Kalın Buton.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -50,7 +51,7 @@ html, body {
     text-shadow: 0 0 15px rgba(0, 255, 136, 0.5); 
 }
 
-/* 3. ENERJİ SİSTEMİ */
+/* 3. ENERJİ SİSTEMİ VE ALARM MODU */
 .energy-section {
     padding: 12px 15px;
     background: rgba(15, 23, 42, 0.7);
@@ -88,8 +89,7 @@ html, body {
     color: #94a3b8;
 }
 
-/* 4. TAPPER EKRANI */
-
+/* 4. ANA EKRAN BUTONLARI VE UYARILAR */
 .ad-buttons-container {
     display: flex;
     gap: 12px;
@@ -120,13 +120,15 @@ html, body {
 
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-/* FİKS: TAPPER BUTONUNU ZORLA AŞAĞI İTEN KOD (BURAYA ACIMADIM) */
+/* 🔥 FİKS: TAPPER BUTONUNU EKRANIN ORTASINA ZORLA GÖMEN KISIM 🔥 */
 #tap-button-container {
-    margin-top: 140px !important; /* Butonu hayvan gibi aşağı iter. Gerekirse bu sayıyı artırıp azaltabilirsin */
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    /* Ekranın %12'si kadar boşluk bırakıp fiziksel olarak 50 piksel daha aşağı kaydırır. İMKANSIZ YUKARI ÇIKMASI */
+    margin-top: 12vh !important; 
+    transform: translateY(50px) !important;
 }
 
 #tap-button {
@@ -165,7 +167,6 @@ html, body {
 @keyframes shake-anim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
 /* 6. KAZAN (CASINO) EKRANI VIP TASARIM */
-
 .wheel-outer { position: relative; width: 280px; height: 280px; margin: 10px auto; }
 #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #1e293b; }
 .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 50; }
