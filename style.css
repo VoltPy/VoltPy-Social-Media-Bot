@@ -1,0 +1,247 @@
+/* --- VOLTPY MODERN SMM UI (FULL STABLE) --- */
+:root {
+    --bg-color: #0f172a; 
+    --card-bg: #1e293b;
+    --accent-color: #00ff88; /* Elektrik Yeşili */
+    --text-color: #f8fafc;
+    --hint-color: #94a3b8;
+    --gold: #fbbf24;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Mobil cihazlarda istenmeyen yakınlaştırma ve seçmeleri engeller */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Sayfanın genel kaymasını engeller, ekran bazlı kaydırma yapacağız */
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* --- ÜST PANEL (HEADER) --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(15, 23, 42, 0.95);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-info { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.user-info i { color: var(--accent-color); font-size: 20px; }
+
+.header-right { display: flex; align-items: center; gap: 12px; }
+
+.balance-container {
+    background: var(--card-bg);
+    padding: 8px 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.balance-container i { color: var(--gold); }
+
+.save-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s;
+}
+.save-btn:active { transform: scale(0.9); }
+
+/* --- EKRAN YÖNETİMİ --- */
+.screen {
+    display: none; /* Varsayılan olarak tüm ekranlar gizli */
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto; /* İçerik taşarsa kendi içinde kaysın */
+    width: 100%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.screen.active {
+    display: flex !important; /* Sadece aktif ekranı göster */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ANA EKRAN (TAP AREA) --- */
+#home-screen {
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 100px; /* Navigasyona çarpmaması için */
+}
+
+.tap-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.coin-wrapper {
+    width: 260px;
+    height: 260px;
+    background: linear-gradient(135deg, #00ff88, #008844);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.2);
+    transition: transform 0.05s ease-out; /* Hızlı geri dönüş */
+    position: relative;
+}
+
+/* Tıklama anında takılmayı önlemek için transition: none */
+.coin-wrapper:active {
+    transform: scale(0.94);
+    transition: none;
+}
+
+.coin-inner {
+    width: 235px;
+    height: 235px;
+    border: 4px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.coin-inner i { font-size: 80px; color: white; margin-bottom: 10px; }
+.coin-inner span { font-size: 26px; font-weight: 900; color: white; letter-spacing: 3px; }
+
+/* --- ENERJİ SİSTEMİ --- */
+.energy-section { width: 100%; max-width: 400px; }
+.energy-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: bold; font-size: 16px; }
+.energy-bar-container {
+    width: 100%;
+    height: 14px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+.energy-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent-color), #00ffcc);
+    transition: width 0.2s linear;
+}
+
+/* --- +1 YÜZEN YAZI ANİMASYONU --- */
+.plus-one {
+    position: fixed;
+    color: var(--accent-color);
+    font-size: 30px;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 0.8s ease-out forwards;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-150px); }
+}
+
+/* --- MARKET VE KAZAN EKRANI --- */
+.screen-header { text-align: center; margin-bottom: 30px; }
+.screen-header h2 { font-size: 26px; margin-bottom: 8px; }
+.screen-header p { color: var(--hint-color); }
+
+.market-item {
+    background: var(--card-bg);
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.item-details h3 { font-size: 16px; margin-bottom: 4px; }
+.item-details p { font-size: 12px; color: var(--hint-color); }
+
+.action-btn, .buy-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* --- ALT NAVİGASYON (FOOTER) --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 5px 35px;
+    background: var(--card-bg);
+    border-radius: 25px 25px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--hint-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    flex: 1;
+    transition: color 0.2s;
+}
+
+.nav-btn i { font-size: 24px; }
+.nav-btn.active { color: var(--accent-color); }
