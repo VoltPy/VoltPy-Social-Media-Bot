@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V25 NİHAİ GÖRSEL PAKET (KESİN YERLEŞİM)
+ * VOLTPY TAPPER & CASINO - NİHAİ VE KUSURSUZ GÖRSEL PAKET
  * Geliştirici: Berke (VoltPy)
- * Fokus: Tapper butonunu zorla merkeze itmek, VIP Ödül Kartı, Kalın Buton.
+ * Çözüm: Flexbox mimarisi ile tapper butonu ekrana mükemmel ortalandı.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -89,12 +89,12 @@ html, body {
     color: #94a3b8;
 }
 
-/* 4. ANA EKRAN BUTONLARI VE UYARILAR */
+/* 4. TAPPER EKRANI (ÜST KISIM) */
 .ad-buttons-container {
     display: flex;
     gap: 12px;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     width: 100%;
 }
 
@@ -111,7 +111,7 @@ html, body {
     color: #ff8c00;
     font-size: 13px;
     font-weight: 900;
-    margin: 15px 0;
+    margin: 10px 0 0 0;
     text-align: center;
     text-transform: uppercase;
     text-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
@@ -120,15 +120,14 @@ html, body {
 
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-/* 🔥 FİKS: TAPPER BUTONUNU EKRANIN ORTASINA ZORLA GÖMEN KISIM 🔥 */
+/* 🔥 FİKS: TAPPER BUTONUNUN SİSTEMATİK ORTALANMASI 🔥 */
 #tap-button-container {
     width: 100%;
+    flex: 1; /* KALAN TÜM DİKEY BOŞLUĞU ALIR */
     display: flex;
-    justify-content: center;
-    align-items: center;
-    /* Ekranın %12'si kadar boşluk bırakıp fiziksel olarak 50 piksel daha aşağı kaydırır. İMKANSIZ YUKARI ÇIKMASI */
-    margin-top: 12vh !important; 
-    transform: translateY(50px) !important;
+    justify-content: center; /* YATAYDA ORTALA */
+    align-items: center; /* DİKEYDE TAM ORTALA (Sorununu kökten çözen kod) */
+    margin-bottom: 20px;
 }
 
 #tap-button {
