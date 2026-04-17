@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V18 (FINAL STABLE)
+ * VOLTPY TAPPER & CASINO - V19 NİHAİ (STABLE)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Otomasyon yazısı (turbo-status) senkronizasyonu %100 düzeltildi.
+ * Çözüm: Turbo Yazısı Fix, Detaylı Hata Mesajları, Multi-Touch Optimizasyonu
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. TELEGRAM VE PARAMETRELER
+// 2. TELEGRAM WEBAPP AYARLARI
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
@@ -35,7 +35,7 @@ let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, firstLoad = false, lastUpdate = Date.now();
 let autoClickInterval = null;
 
-// 3. 🎰 CASINO ÖDÜL TABLOSU
+// 3. 🎰 ÖDÜL TABLOSU (Ağırlıklı Sistem)
 const rewards = [
     { text: "BOŞ", val: 0, weight: 150 },
     { text: "10 💰", val: 10, weight: 200 },
@@ -47,7 +47,7 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 4. 📡 VERİ SENKRONİZASYONU
+// 4. 📡 FIREBASE VERİ SENKRONİZASYONU
 if (userId) {
     onValue(ref(db, 'users/' + userId), (snapshot) => {
         const data = snapshot.val();
@@ -56,8 +56,11 @@ if (userId) {
             lastFreeSpin = data.lastFreeSpin || 0;
             spinCount = data.spinCount || 0;
             adCount = data.adCount || 0;
+            
+            // Saat başı reklam limitini sıfırla
             if (new Date().getHours() !== (data.lastAdHour || 0)) adCount = 0;
 
+            // Çevrimdışı Enerji Hesaplama (1⚡ / 60sn)
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
             currentEnergy = Math.min(500, savedEnergy + Math.floor((Date.now() - savedTime) / 60000));
@@ -66,13 +69,16 @@ if (userId) {
             updateUI();
             if (!firstLoad) { 
                 document.getElementById('loading-overlay').style.display = 'none'; 
+                // Yazı takılmasını önlemek için başlangıçta gizle
+                const st = document.getElementById('turbo-status');
+                if (st) st.style.display = 'none';
                 firstLoad = true; 
             }
         }
     });
 }
 
-// 5. ⏳ SİSTEM SAYAÇLARI
+// 5. ⏳ SİSTEM SAYAÇLARI (1 Saniyelik Döngü)
 function tick() {
     const now = Date.now();
     const diff = (24 * 60 * 60 * 1000) - (now - lastFreeSpin);
@@ -97,7 +103,7 @@ function tick() {
 }
 setInterval(tick, 1000);
 
-// 6. 🎯 TAPPER VE MODAL KONTROLÜ
+// 6. 🎯 TAPPER MANTIĞI VE MODAL KONTROLÜ
 const tapBtn = document.getElementById('tap-button');
 
 window.closeEnergyModal = () => {
@@ -108,6 +114,7 @@ const handleTap = (e) => {
     if (isAutoClicking) return;
     if (e.cancelable) e.preventDefault();
 
+    // Enerji bittiyse Popup aç ve Shake yap
     if (currentEnergy <= 0) {
         document.getElementById('energy-modal').style.display = 'flex';
         tapBtn.classList.add('shake');
@@ -115,9 +122,11 @@ const handleTap = (e) => {
         return;
     }
 
+    // Tıklama Flaşı
     tapBtn.classList.add('active-tap');
     setTimeout(() => tapBtn.classList.remove('active-tap'), 50);
 
+    // Multi-touch desteği: Her parmak için +1
     const touches = e.changedTouches ? e.changedTouches : [e];
     for (let i = 0; i < touches.length; i++) {
         if (currentEnergy > 0) {
@@ -158,7 +167,6 @@ if (spinBtnEl) {
         else { balance -= cost; spinCount++; }
 
         isSpinning = true;
-        document.getElementById('reward-text').style.display = 'none';
         updateUI(); bulutaYaz();
 
         let totalW = rewards.reduce((s, r) => s + r.weight, 0);
@@ -181,12 +189,11 @@ if (spinBtnEl) {
             else balance += prize.val;
             updateUI(); bulutaYaz();
             document.getElementById('reward-text').textContent = `KAZANÇ: ${prize.text}`;
-            document.getElementById('reward-text').style.display = 'block';
         }, 5100);
     };
 }
 
-// 8. 🚀 REKLAM VE TURBO MOTORU (KESİN ÇÖZÜM)
+// 8. 🚀 REKLAM VE TURBO MOTORU (AKILLI HATA MESAJLARI)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
     if (confirm("+250 Enerji ister misin?")) {
@@ -196,25 +203,32 @@ window.watchAdForEnergy = () => {
 };
 
 window.startTurboMode = () => {
-    if (isAutoClicking || adCount >= 20 || currentEnergy < 100) return alert("Limit dolu veya enerji yetersiz!");
-    adCount++; 
-    isAutoClicking = true;
+    if (isAutoClicking) return;
     
-    document.body.classList.add('turbo-active');
-    const statusText = document.getElementById('turbo-status');
-    if (statusText) statusText.style.display = 'block';
+    // DETAYLI KONTROL SİSTEMİ
+    if (adCount >= 20) return alert("Saatlik Turbo limitin doldu! (20/20)");
+    if (currentEnergy < 100) return alert("Turbo için en az 100 enerji gerekli. Şu an: " + currentEnergy);
 
-    autoClickInterval = setInterval(() => {
-        if (currentEnergy > 0) {
-            balance++; 
-            currentEnergy--; 
-            updateUI();
-            createPlusOne(window.innerWidth / 2, window.innerHeight / 2);
-            if (currentEnergy % 25 === 0) bulutaYaz();
-        } else { 
-            stopAutoClicker(); 
-        }
-    }, 85);
+    if (confirm("Otomasyon başlasın mı?")) {
+        adCount++; 
+        isAutoClicking = true;
+        
+        document.body.classList.add('turbo-active');
+        const statusText = document.getElementById('turbo-status');
+        if (statusText) statusText.style.display = 'block';
+
+        autoClickInterval = setInterval(() => {
+            if (currentEnergy > 0) {
+                balance++; 
+                currentEnergy--; 
+                updateUI();
+                createPlusOne(window.innerWidth / 2, window.innerHeight / 2);
+                if (currentEnergy % 25 === 0) bulutaYaz();
+            } else { 
+                stopAutoClicker(); 
+            }
+        }, 85);
+    }
 };
 
 function stopAutoClicker() {
@@ -224,7 +238,7 @@ function stopAutoClicker() {
     }
     isAutoClicking = false;
     
-    // UI TEMİZLİĞİ (ZORUNLU)
+    // UI TEMİZLİĞİ
     document.body.classList.remove('turbo-active');
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
@@ -233,7 +247,7 @@ function stopAutoClicker() {
     bulutaYaz();
 }
 
-// 9. ✍️ FIREBASE VE ARAYÜZ
+// 9. ✍️ FIREBASE VE ARAYÜZ GÜNCELLEME
 function bulutaYaz() {
     if (userId) set(ref(db, 'users/' + userId), { 
         balance, energy: currentEnergy, lastFreeSpin, spinCount, adCount, 
@@ -249,18 +263,13 @@ function updateUI() {
 
     const energySection = document.querySelector('.energy-section');
     const energyWarning = document.getElementById('energy-warning');
-    const statusText = document.getElementById('turbo-status');
 
     if (currentEnergy <= 0) {
         if (energySection) energySection.classList.add('energy-empty');
         if (energyWarning) energyWarning.style.display = 'block';
         
-        // Enerji bittiğinde otomasyonu kesin kapat ve yazıyı gizle
-        if (isAutoClicking) {
-            stopAutoClicker();
-        } else if (statusText) {
-            statusText.style.display = 'none';
-        }
+        // Enerji bittiğinde otomasyonu ve yazıyı kapat
+        if (isAutoClicking) stopAutoClicker();
     } else {
         if (energySection) energySection.classList.remove('energy-empty');
         if (energyWarning) energyWarning.style.display = 'none';
