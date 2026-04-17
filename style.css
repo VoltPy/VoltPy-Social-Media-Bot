@@ -1,6 +1,6 @@
-/* VOLTPY TAPPER & CASINO - V14 NİHAİ CSS 
+/* VOLTPY TAPPER & CASINO - V15 (NEON ALERT SYSTEM)
     Geliştirici: Berke (VoltPy)
-    Özellikler: Enerji Bitiş Uyarısı, Kırmızı Neon Modu, Sarsılma (Shake) Efekti
+    Özellikler: Gelişmiş Enerji Uyarı Tasarımı, Mekanik Tapper, Multi-Touch
 */
 
 /* 1. SİSTEM VE MOBİL OPTİMİZASYON */
@@ -21,7 +21,6 @@ html, body {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    /* Çift tıklama zoomunu ve sayfa kaymasını engeller */
     touch-action: manipulation;
 }
 
@@ -46,7 +45,7 @@ html, body {
 .user-info { font-weight: 800; color: #00ff88; font-size: 13px; }
 .balance-container { font-size: 20px; font-weight: 900; color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
 
-/* 3. ENERJİ BÖLÜMÜ VE KIRMIZI ALARM */
+/* 3. ENERJİ BÖLÜMÜ VE ALARM MODU */
 .energy-section {
     padding: 10px 15px;
     background: rgba(15, 23, 42, 0.6);
@@ -68,7 +67,7 @@ html, body {
     transition: width 0.2s linear;
 }
 
-/* ENERJİ BİTİNCE ÇALIŞACAK KIRMIZI PULSE EFEKTİ */
+/* Enerji Bittiğinde Barın Alacağı Renk */
 .energy-empty #energy-bar {
     background: linear-gradient(90deg, #ff4444, #b91c1c) !important;
     animation: energy-pulse 1s infinite;
@@ -89,29 +88,33 @@ html, body {
     color: #94a3b8;
 }
 
-/* 4. ENERJİ BİTTİ UYARI KUTUSU */
+/* 4. ENERJİ TÜKENDİ UYARISI (YENİ NESİL NEON TASARIM) */
 #energy-warning {
-    display: none; /* JS ile enerji 0 olunca açılır */
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid #ff4444;
-    color: #ff4444;
-    padding: 10px;
+    display: none; 
+    background: rgba(255, 68, 68, 0.08); /* Hafif kırmızı cam efekti */
+    border: 1px solid rgba(255, 68, 68, 0.4); /* Neon kırmızı çerçeve */
+    color: #ff4444; /* Parlak kırmızı metin */
+    padding: 12px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 900;
     text-align: center;
     margin: 10px 15px;
     letter-spacing: 1px;
-    box-shadow: 0 0 15px rgba(255, 68, 68, 0.2);
-    animation: fadeInSlide 0.3s ease-out;
+    text-transform: uppercase;
+    /* Metin Parlaması (Neon Efekti) */
+    text-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+    box-shadow: inset 0 0 15px rgba(255, 68, 68, 0.05);
+    animation: alert-glow 1.5s infinite ease-in-out;
 }
 
-@keyframes fadeInSlide {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes alert-glow {
+    0% { border-color: rgba(255, 68, 68, 0.4); box-shadow: 0 0 5px rgba(255, 68, 68, 0.1); }
+    50% { border-color: rgba(255, 68, 68, 0.8); box-shadow: 0 0 15px rgba(255, 68, 68, 0.2); }
+    100% { border-color: rgba(255, 68, 68, 0.4); box-shadow: 0 0 5px rgba(255, 68, 68, 0.1); }
 }
 
-/* 5. TAPPER BUTONU - SABİT & SARSILMALI */
+/* 5. TAPPER BUTONU - MEKANİK & SABİT */
 #tap-button {
     width: 230px;
     height: 230px;
@@ -122,7 +125,7 @@ html, body {
     align-items: center;
     border: 7px solid #00ff88;
     box-shadow: 0 0 25px rgba(0, 255, 136, 0.2);
-    transition: border-color 0.1s, box-shadow 0.1s; /* Hareket yok, sadece ışık geçişi */
+    transition: border-color 0.1s, box-shadow 0.1s;
     cursor: pointer;
     position: relative;
     touch-action: none;
@@ -136,24 +139,16 @@ html, body {
     box-shadow: 0 0 50px rgba(0, 255, 136, 0.8);
 }
 
-/* Enerji Yokken Tıklayınca Sarsılma (Shake) */
+/* Sarsılma (Shake) Efekti */
 .shake {
     animation: shake-anim 0.2s ease-in-out;
     border-color: #ff4444 !important;
-    box-shadow: 0 0 30px rgba(255, 68, 68, 0.5) !important;
 }
 
 @keyframes shake-anim {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-10px); }
     75% { transform: translateX(10px); }
-}
-
-/* Enerji Boşken Buton Görünümü */
-.energy-empty #tap-button {
-    border-color: #334155;
-    opacity: 0.7;
-    box-shadow: none;
 }
 
 /* 6. +1 ANİMASYONU */
@@ -174,7 +169,7 @@ html, body {
     100% { opacity: 0; transform: translate(-50%, -160px); }
 }
 
-/* 7. REKLAM/TURBO BUTONLARI (SADECE ANA EKRAN) */
+/* 7. REKLAM/TURBO BUTONLARI */
 .ad-buttons-container {
     display: flex;
     gap: 10px;
@@ -200,7 +195,7 @@ html, body {
 #energy-ad-btn { background: rgba(0, 212, 255, 0.1); border: 1px solid #00d4ff; color: #00d4ff; }
 #turbo-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; color: #fbbf24; }
 
-/* 8. ÇARK VE DİĞER EKRANLAR */
+/* 8. ÇARK VE DİĞERLERİ */
 .wheel-outer { position: relative; width: 275px; height: 275px; margin: 5px auto; }
 #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #1e293b; }
 .wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 28px solid #ff4444; z-index: 50; }
