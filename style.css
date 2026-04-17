@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V26 NİHAİ GÖRSEL PAKET (ALTIN ORAN)
+ * VOLTPY TAPPER & CASINO - V27 NİHAİ GÖRSEL PAKET (TAM MERKEZ)
  * Geliştirici: Berke (VoltPy)
- * Fokus: Tapper butonunun görsel olarak ekranın o boş kısmına kusursuz ortalanması.
+ * Fokus: Tapper butonu "bi tık" yukarı alındı, görsel altın oran yakalandı.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -120,13 +120,13 @@ html, body {
 
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-/* 🔥 FİKS: TAPPER BUTONUNUN ALTIN ORAN İLE YERLEŞTİRİLMESİ 🔥 */
+/* 🔥 FİKS: TAPPER BUTONUNUN "Bİ TIK" YUKARI ALINMASI 🔥 */
 #tap-button-container {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 70px; /* Ne çok yakın (45px), ne çok uzak. Tam o görsel merkeze oturtur. */
+    margin-top: 35px; /* 70px fazla gelmişti, 35px ile kusursuz ortaya çektik */
 }
 
 #tap-button {
