@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V27 NİHAİ GÖRSEL PAKET (TAM MERKEZ)
+ * VOLTPY TAPPER & CASINO - V28 NİHAİ (SON VE KESİN ÇÖZÜM)
  * Geliştirici: Berke (VoltPy)
- * Fokus: Tapper butonu "bi tık" yukarı alındı, görsel altın oran yakalandı.
+ * Hata Çözümü: 160px'lik görünmez duvar silindi, Flexbox Auto-Margin ile kusursuz merkezleme yapıldı.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -111,7 +111,7 @@ html, body {
     color: #ff8c00;
     font-size: 13px;
     font-weight: 900;
-    margin: 15px 0 0 0;
+    margin: 5px 0;
     text-align: center;
     text-transform: uppercase;
     text-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
@@ -120,13 +120,14 @@ html, body {
 
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-/* 🔥 FİKS: TAPPER BUTONUNUN "Bİ TIK" YUKARI ALINMASI 🔥 */
+/* 🔥 MUCİZE KOD BURASI: Görünmez duvarı silip butonu merkeze çiviledik 🔥 */
 #tap-button-container {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 35px; /* 70px fazla gelmişti, 35px ile kusursuz ortaya çektik */
+    margin-top: auto;    /* Üstten kalan boşluğu otomatik eşitler */
+    margin-bottom: auto; /* Alttan kalan boşluğu otomatik eşitler */
 }
 
 #tap-button {
@@ -226,12 +227,13 @@ html, body {
 .nav-icon { font-size: 24px; }
 .nav-text { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 3px; }
 
-/* 9. EKRAN KONTROLLERİ */
+/* 9. EKRAN KONTROLLERİ (PADDİNG DÜZELTİLDİ) */
 main { flex: 1; position: relative; overflow: hidden; }
 .screen {
     display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    padding: 20px; overflow-y: auto; padding-bottom: 160px;
+    padding: 20px 20px 100px 20px; /* DİKKAT: 160px olan duvar 100px'e düşürüldü. Sorun buydu! */
+    overflow-y: auto;
 }
-.screen.active { display: flex; flex-direction: column; align-items: center; }
+.screen.active { display: flex; flex-direction: column; }
 
 ::-webkit-scrollbar { display: none; }
