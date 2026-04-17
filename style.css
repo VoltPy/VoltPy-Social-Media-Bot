@@ -1,19 +1,20 @@
-/* =========================================
-   1. TEMEL SIFIRLAMALAR
-   ========================================= */
+/* VOLTPY SMM BOT - NİHAİ STYLE.CSS 
+    Geliştirici: Berke (VoltPy)
+*/
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* Mobildeki mavi gölgeyi kaldırır */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    background-color: #0f172a;
-    color: #f8fafc;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
-    overflow: hidden; /* Ekranın kaymasını engeller */
-    user-select: none;
+    background-color: #0f172a; /* Koyu Lacivert Arka Plan */
+    color: #ffffff;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; /* Dış kaydırmayı engelle, sadece screen içini kaydır */
 }
 
 #app {
@@ -23,136 +24,136 @@ body {
     width: 100vw;
 }
 
-/* =========================================
-   2. ÜST BİLGİ PANELİ (TOP BAR)
-   ========================================= */
+/* ÜST BİLGİ PANELİ */
 .top-bar {
-    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(30, 41, 59, 0.9);
+    padding: 15px 20px;
+    background: rgba(30, 41, 59, 0.8);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid #334155;
-    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.user-info { font-weight: 600; font-size: 15px; }
+.user-info {
+    font-weight: 800;
+    color: #00ff88;
+    font-size: 14px;
+}
 
 .balance-container {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 900;
     color: #00ff88;
     text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
 
-/* =========================================
-   3. ENERJİ BARI
-   ========================================= */
-.energy-section { padding: 10px 20px; text-align: center; }
+/* ENERJİ BÖLÜMÜ */
+.energy-section {
+    padding: 10px 20px;
+}
 
 .energy-bar-bg {
     width: 100%;
-    height: 12px;
+    height: 10px;
     background: #1e293b;
-    border-radius: 10px;
+    border-radius: 5px;
     overflow: hidden;
-    margin-bottom: 5px;
-    border: 1px solid #334155;
 }
 
 #energy-bar {
     height: 100%;
+    background: linear-gradient(to right, #00ff88, #00d4ff);
     width: 100%;
-    background: linear-gradient(90deg, #facc15, #eab308);
-    transition: width 0.2s ease-out;
+    transition: width 0.3s ease;
 }
 
-#energy-text { color: #94a3b8; font-size: 13px; font-weight: bold; }
+.energy-info {
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 5px;
+    font-weight: bold;
+}
 
-/* =========================================
-   4. EKRAN YÖNETİMİ
-   ========================================= */
-main { flex: 1; position: relative; }
+/* ANA EKRANLAR */
+main {
+    flex: 1;
+    position: relative;
+}
 
 .screen {
-    display: none; /* Varsayılan gizli */
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    padding: 20px;
+    display: none;
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    overflow-y: auto;
+    padding-bottom: 120px; /* Menünün altında kalmayı engeller */
 }
 
-.screen.active { display: flex; animation: fadeIn 0.3s ease; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.screen.active {
+    display: block;
+}
 
 .screen-title {
-    color: #00ff88;
-    font-size: 28px;
-    font-weight: 800;
+    text-align: center;
+    font-size: 22px;
     margin-bottom: 20px;
+    color: #00ff88;
+    font-weight: 900;
 }
 
-/* =========================================
-   5. TAPPER EKRANI
-   ========================================= */
-#tap-button-container {
-    flex: 1;
-    display: flex;
+/* TAPPER EKRANI */
+#home {
+    display: none;
     justify-content: center;
     align-items: center;
 }
 
+#home.active {
+    display: flex;
+}
+
+#tap-button-container {
+    transform: translateY(-20px);
+}
+
 #tap-button {
-    width: 250px;
-    height: 250px;
+    width: 220px;
+    height: 220px;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 50px rgba(0, 255, 136, 0.1);
-    border: 5px solid #1e293b;
-    cursor: pointer;
-    transition: transform 0.05s;
-}
-
-#tap-button:active { transform: scale(0.95); }
-#tap-button img { width: 150px; pointer-events: none; }
-
-/* Tıklama Efekti (+1) */
-.plus-one {
-    position: absolute;
-    color: #00ff88;
-    font-weight: bold;
-    font-size: 28px;
-    pointer-events: none;
-    animation: floatUp 0.8s ease-out forwards;
-    z-index: 999;
-}
-@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
-
-/* =========================================
-   6. ÇARK EKRANI (KESİN ÇÖZÜM)
-   ========================================= */
-.wheel-container {
-    position: relative;
-    width: 320px;
-    height: 320px;
-    margin: 20px auto;
-}
-
-#wheel-canvas {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
     border: 8px solid #1e293b;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s active;
+}
+
+#tap-button:active {
+    transform: scale(0.95);
+}
+
+#tap-button img {
+    width: 140px;
+    pointer-events: none;
+}
+
+/* KAZAN (ÇARK) EKRANI */
+#earn {
+    text-align: center;
+}
+
+.wheel-outer {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 10px auto;
 }
 
 .wheel-pointer {
@@ -160,84 +161,143 @@ main { flex: 1; position: relative; }
     top: -15px;
     left: 50%;
     transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #ff4444;
     z-index: 10;
-    color: #ff4444;
-    font-size: 40px;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
 }
 
-/* BUTONU ORTALAYAN GRUP */
+#wheel-canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid #1e293b;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+#reward-display {
+    height: 40px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#reward-text {
+    font-size: 20px;
+    font-weight: 900;
+    color: #00ff88;
+    text-shadow: 0 0 10px rgba(0,255,136,0.6);
+}
+
 .button-group {
     width: 100%;
     display: flex;
-    justify-content: center;
-    margin-top: 30px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 #spin-button {
-    background: linear-gradient(135deg, #00ff88, #00cc6a);
-    color: #0f172a;
-    border: none;
-    padding: 16px 50px;
+    width: 80%;
+    padding: 16px;
     border-radius: 30px;
+    border: none;
+    background: linear-gradient(45deg, #00ff88, #00bd65);
+    color: #0f172a;
+    font-weight: 900;
     font-size: 18px;
-    font-weight: 800;
-    box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
-    cursor: pointer;
-    transition: 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+    transition: transform 0.1s;
 }
 
-#spin-button:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0, 255, 136, 0.2); }
+#spin-button:active {
+    transform: scale(0.98);
+}
 
-/* =========================================
-   7. MARKET EKRANI
-   ========================================= */
-#market-list { width: 100%; max-width: 400px; }
+#spin-button:disabled {
+    background: #1e293b;
+    color: #475569;
+    box-shadow: none;
+}
 
+/* MARKET EKRANI */
 .market-item {
     background: #1e293b;
+    border-radius: 15px;
     padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid #334155;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .buy-btn {
     background: #00ff88;
     color: #0f172a;
     border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
 }
 
-/* =========================================
-   8. ALT NAVİGASYON
-   ========================================= */
+/* ALT NAVİGASYON */
 .bottom-nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: #1e293b;
-    height: 80px;
-    border-top: 1px solid #334155;
-    padding-bottom: 10px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(15px);
+    padding: 10px 0 25px 0; /* Alttan boşluk Telegram barı için */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
 
 .nav-btn {
     background: none;
     border: none;
+    color: #64748b;
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: #64748b;
     gap: 5px;
+    transition: 0.3s;
+    width: 33%;
 }
 
-.nav-btn.active { color: #00ff88; }
-.nav-icon { font-size: 24px; }
-.nav-text { font-size: 11px; font-weight: bold; }
+.nav-btn.active {
+    color: #00ff88;
+}
+
+.nav-icon {
+    font-size: 20px;
+}
+
+.nav-text {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* ANİMASYONLAR */
+@keyframes fadeOutUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-50px); }
+}
+
+.plus-one {
+    position: fixed;
+    pointer-events: none;
+    color: #00ff88;
+    font-weight: 900;
+    font-size: 24px;
+    animation: fadeOutUp 0.8s forwards;
+    z-index: 9999;
+}
