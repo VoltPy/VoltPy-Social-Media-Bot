@@ -1,7 +1,8 @@
 /**
- * VOLTPY CASINO & TAPPER - V9
+ * VOLTPY CASINO & TAPPER - NİHAİ VERSİYON (V11)
  * Geliştirici: Berke (VoltPy)
- * Düzeltmeler: String parantez hatası, UI senkronu, Gelişmiş Tapper Mantığı
+ * Özellikler: Manuel +1 Efekti (Koordinatlı), Titreşimsiz (No Haptic), 
+ * Bugsuz Çark Stringleri, Dinamik Enerji Regen.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -58,8 +59,10 @@ if (userId) {
             adCount = data.adCount || 0;
             const savedAdHour = data.lastAdHour || new Date().getHours();
 
+            // Saatlik reklam limitini kontrol et
             if (new Date().getHours() !== savedAdHour) { adCount = 0; }
 
+            // Çevrimdışı enerji hesaplama
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
             const elapsedMins = Math.floor((Date.now() - savedTime) / 60000);
@@ -75,7 +78,7 @@ if (userId) {
     });
 }
 
-// 5. ⏳ SAYAÇLAR (Enerji & Free Spin & Bug Düzeltme)
+// 5. ⏳ SAYAÇLAR (Enerji & Free Spin)
 function tick() {
     const now = Date.now();
     const freeWait = 24 * 60 * 60 * 1000;
@@ -94,7 +97,7 @@ function tick() {
             spinBtn.style.background = "linear-gradient(45deg, #00ff88, #00d4ff)";
             if (timerVal) timerVal.textContent = "HAKKIN HAZIR!";
         } else {
-            // BUG DÜZELTİLDİ: Parantez kapatıldı
+            // Parantez bugı düzeltildi
             spinBtn.textContent = `ÇEVİR (${cost} 💰)`; 
             spinBtn.style.background = "";
             if (timerVal) {
@@ -116,8 +119,9 @@ function tick() {
 setInterval(tick, 1000);
 
 // 6. 🎡 ÇARK MANTIĞI
-if (document.getElementById('spin-button')) {
-    document.getElementById('spin-button').onclick = () => {
+const spinBtnEl = document.getElementById('spin-button');
+if (spinBtnEl) {
+    spinBtnEl.onclick = () => {
         if (isSpinning) return;
         const now = Date.now();
         const isDailyFree = (now - lastFreeSpin >= 24 * 60 * 60 * 1000);
@@ -166,20 +170,18 @@ if (document.getElementById('spin-button')) {
             
             updateUI(); bulutaYaz();
             const rt = document.getElementById('reward-text');
-            rt.textContent = prize.type === "frenzy" ? "🔥 X3 BONUS KAZANDIN! 🔥" : `KAZANÇ: ${prize.text}`;
+            rt.textContent = `KAZANÇ: ${prize.text}`;
             rt.style.display = 'block';
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 5100);
     };
 }
 
-// 7. 🚀 REKLAM VE TURBO (SADECE HOME'DA AKTİF)
+// 7. 🚀 REKLAM VE TURBO
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
     if (confirm("+250 Enerji için reklam izlensin mi?")) {
         currentEnergy = Math.min(500, currentEnergy + 250);
         updateUI(); bulutaYaz();
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     }
 };
 
@@ -204,10 +206,16 @@ function startAutoClicker() {
     autoClickInterval = setInterval(() => {
         if (currentEnergy > 0) {
             balance++; currentEnergy--; updateUI();
-            const p = document.createElement('div'); p.innerText = '+1'; p.className = 'plus-one';
+            
+            // Otomatik +1 efekti (Merkezden fırlar)
+            const p = document.createElement('div');
+            p.innerText = '+1';
+            p.className = 'plus-one';
             p.style.left = (window.innerWidth / 2 + (Math.random()*60-30)) + 'px';
             p.style.top = (window.innerHeight / 2 + (Math.random()*60-30)) + 'px';
-            document.body.appendChild(p); setTimeout(() => p.remove(), 500);
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 500);
+            
             if (currentEnergy % 20 === 0) bulutaYaz();
         } else { stopAutoClicker(); }
     }, 85);
@@ -220,7 +228,6 @@ function stopAutoClicker() {
     document.getElementById('turbo-status').style.display = 'none';
     document.querySelector('.bottom-nav').style.pointerEvents = 'auto';
     bulutaYaz();
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 }
 
 // 8. 🎨 ÇARK ÇİZİMİ
@@ -259,18 +266,29 @@ function updateUI() {
     if (ac) ac.textContent = adCount;
 }
 
-// 10. TAPPER VE NAVİGASYON
-document.getElementById('tap-button').addEventListener('pointerdown', (e) => {
-    if (isAutoClicking) return;
-    if (currentEnergy > 0) {
-        balance++; currentEnergy--; updateUI(); bulutaYaz();
-        const p = document.createElement('div'); p.innerText = '+1'; p.className = 'plus-one';
-        p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
-        document.body.appendChild(p); setTimeout(() => p.remove(), 800);
-        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-    }
-});
+// 10. TAPPER VE +1 ANİMASYONU (MANUEL)
+const tapBtn = document.getElementById('tap-button');
+if (tapBtn) {
+    tapBtn.addEventListener('pointerdown', (e) => {
+        if (isAutoClicking) return;
+        if (currentEnergy > 0) {
+            balance++; currentEnergy--; updateUI(); bulutaYaz();
+            
+            // İSTEK: MANUEL +1 ANİMASYONU (Tıklanan yerden fırlar)
+            const p = document.createElement('div');
+            p.innerText = '+1';
+            p.className = 'plus-one';
+            p.style.left = `${e.clientX}px`;
+            p.style.top = `${e.clientY}px`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 800);
+            
+            // Titreşim (Haptic) Kaldırıldı.
+        }
+    });
+}
 
+// NAVİGASYON
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         if (isAutoClicking) return;
@@ -283,4 +301,5 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     };
 });
 
+// BAŞLAT
 drawWheel(); updateUI();
