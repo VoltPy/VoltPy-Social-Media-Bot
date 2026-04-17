@@ -1,0 +1,228 @@
+/* --- VOLTPY FULL STABLE UI --- */
+:root {
+    --bg-color: #0f172a; 
+    --card-bg: #1e293b;
+    --accent-color: #00ff88; 
+    --text-color: #f8fafc;
+    --hint-color: #94a3b8;
+    --gold: #fbbf24;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Metin seçimini ve tarayıcı gecikmesini tamamen kapatıyoruz */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Sayfanın kaymasını engeller */
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* --- ÜST PANEL (HEADER) --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(15, 23, 42, 0.95);
+    z-index: 100;
+}
+
+.user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.user-info i { color: var(--accent-color); font-size: 18px; }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.balance-container {
+    background: var(--card-bg);
+    padding: 6px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.balance-container i { color: var(--gold); }
+
+.save-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* --- EKRAN YÖNETİMİ (BOZULMAYI ÖNLEYEN KISIM) --- */
+.screen {
+    display: none; /* Önce her şeyi gizle */
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* Sadece aktif ekranı göster */
+.screen.active {
+    display: flex !important;
+}
+
+/* --- ANA EKRAN (TIKLAMA ALANI) --- */
+#home-screen {
+    justify-content: space-between; /* Buton ortada, enerji altta kalsın */
+    align-items: center;
+    padding-bottom: 120px; /* Menüye çarpmaması için */
+}
+
+.tap-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.coin-wrapper {
+    width: 240px;
+    height: 240px;
+    background: linear-gradient(135deg, #00ff88, #009955);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+    transition: transform 0.05s ease-out;
+}
+
+/* Hızlı Tıklama Efekti */
+.coin-wrapper:active {
+    transform: scale(0.94);
+    transition: none;
+}
+
+.coin-inner {
+    width: 215px;
+    height: 215px;
+    border: 3px dashed rgba(255,255,255,0.4);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.coin-inner i { font-size: 80px; color: white; margin-bottom: 5px; }
+.coin-inner span { font-size: 22px; font-weight: 900; color: white; letter-spacing: 2px; }
+
+/* --- ENERJİ BARI --- */
+.energy-section { width: 100%; }
+.energy-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+.energy-bar-container {
+    width: 100%;
+    height: 12px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.energy-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent-color), #00ccaa);
+    transition: width 0.15s linear;
+}
+
+/* --- YÜZEN +1 ANİMASYONU --- */
+.plus-one {
+    position: fixed;
+    color: var(--accent-color);
+    font-size: 28px;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 0.7s ease-out forwards;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-120px); }
+}
+
+/* --- MARKET VE KAZAN EKRANI --- */
+.screen-header { text-align: center; margin-bottom: 20px; }
+.screen-header h2 { font-size: 22px; }
+.screen-header p { color: var(--hint-color); font-size: 14px; }
+
+.market-item {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.buy-btn, .action-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- ALT NAVİGASYON (SABİT) --- */
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 5px 30px;
+    background: var(--card-bg);
+    border-radius: 25px 25px 0 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    z-index: 200;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--hint-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    flex: 1;
+}
+
+.nav-btn i { font-size: 22px; }
+.nav-btn.active { color: var(--accent-color); }

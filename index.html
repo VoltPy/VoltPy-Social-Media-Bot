@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoltPy | SMM Tap & Earn</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        
+        <header class="header">
+            <div class="user-info">
+                <i class="fa-solid fa-user-circle"></i>
+                <span id="username">Yükleniyor...</span>
+            </div>
+            <div class="header-right">
+                <div class="balance-container">
+                    <i class="fa-solid fa-coins"></i>
+                    <span id="balance">0</span>
+                </div>
+                <button id="save-btn" class="save-btn" title="Kaydet">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="home-screen" class="screen active">
+            <div class="tap-area">
+                <div id="tap-button" class="coin-wrapper">
+                    <div class="coin-inner">
+                        <i class="fa-solid fa-rocket"></i> <span>VOLT</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="energy-section">
+                <div class="energy-info">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                    <span id="energy-text">500 / 500</span>
+                </div>
+                <div class="energy-bar-container">
+                    <div id="energy-bar" class="energy-bar-fill"></div>
+                </div>
+            </div>
+        </main>
+
+        <main id="ads-screen" class="screen">
+            <div class="screen-header">
+                <h2>Şans Çarkı</h2>
+                <p>100 Coin harcayarak şansını dene!</p>
+            </div>
+            
+            <div class="wheel-container">
+                <div id="lucky-wheel" class="visual-wheel">
+                    <i class="fa-solid fa-clover"></i>
+                </div>
+                <button id="spin-button" class="action-btn">
+                    <i class="fa-solid fa-rotate"></i> ÇEVİR (100 💰)
+                </button>
+            </div>
+        </main>
+
+        <main id="market-screen" class="screen">
+            <div class="screen-header">
+                <h2>SMM Servisleri</h2>
+                <p>Puanlarını gerçek etkileşime dönüştür.</p>
+            </div>
+            <div class="market-list">
+                </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="home-screen">
+                <i class="fa-solid fa-fingerprint"></i>
+                <span>Tıkla</span>
+            </button>
+            <button class="nav-btn" data-target="ads-screen">
+                <i class="fa-solid fa-dice"></i>
+                <span>Kazan</span>
+            </button>
+            <button class="nav-btn" data-target="market-screen">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>Market</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
