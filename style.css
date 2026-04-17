@@ -1,5 +1,8 @@
-/* VOLTPY TAPPER & CASINO - V33 (KUSURSUZ HİZALAMA) */
-/* Casino ekranındaki kayma ve ortalama sorunu kökten çözüldü */
+/**
+ * VOLTPY TAPPER & CASINO - V34 (DUVAR YUMRUKLATMAYAN KESİN ÇÖZÜM)
+ * Geliştirici: Berke (VoltPy)
+ * Çözüm: Tüm yatay/dikey hizalamalar !important ile zorunlu kılındı. Scroll hatası sıfırlandı.
+ */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
 * {
@@ -78,7 +81,7 @@ html, body {
     text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
 }
 
-/* 4. ANA EKRAN GÖVDESİ */
+/* 4. ANA EKRAN GÖVDESİ (KAYDIRMA KİLİDİ BURADA KIRILDI) */
 main {
     flex: 1; 
     position: relative;
@@ -91,13 +94,15 @@ main {
     top: 0; left: 0; width: 100%; height: 100%;
     padding: 20px; 
     overflow-y: auto; 
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
 }
 
 .screen.active { 
     display: flex; 
     flex-direction: column; 
-    align-items: center; 
+    align-items: center; /* Her şeyi yatayda tam ortaya dizer */
+    width: 100%;
 }
 
 /* 5. ALT MENÜ (NAVİGASYON) */
@@ -125,13 +130,7 @@ main {
 #turbo-status { display: none; color: #ff8c00; font-size: 13px; font-weight: 900; margin: 15px 0 0 0; text-align: center; text-transform: uppercase; text-shadow: 0 0 15px rgba(255, 140, 0, 0.8); animation: orange-pulse 1.5s infinite; }
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-#tap-button-container {
-    flex: 1; 
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+#tap-button-container { flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; }
 
 #tap-button { width: 240px; height: 240px; background: radial-gradient(circle, #1e293b 0%, #020617 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 8px solid #00ff88; box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); cursor: pointer; position: relative; transition: border-color 0.1s, box-shadow 0.1s; }
 #tap-button img { width: 140px; pointer-events: none; }
@@ -142,14 +141,14 @@ main {
 .shake { animation: shake-anim 0.2s ease-in-out; border-color: #ff4444 !important; }
 @keyframes shake-anim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
-/* 🔥 7. CASINO (KAZAN) EKRANI (HİZALAMA SORUNU BURADA ÇÖZÜLDÜ) 🔥 */
 
-/* Sayfayı dikeyde ve yatayda jilet gibi merkeze dizer */
-#earn.active {
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* DİKEYDE TAM ORTA */
-    align-items: center; /* YATAYDA TAM ORTA */
+/* 🔥 7. CASINO (KAZAN) EKRANI KESİN HİZALAMA 🔥 */
+
+/* Dikeyde ekranı ortalar, ekran sığmazsa kaydırmaya (scroll) izin verir. Scroll hatasını çözen mucize budur. */
+#earn::before, #earn::after {
+    content: "";
+    margin: auto;
+    display: block;
 }
 
 .screen-title { width: 100%; text-align: center; }
@@ -162,16 +161,21 @@ main {
 #reward-text { display: none; background: rgba(0, 255, 136, 0.15); border: 2px solid #00ff88; color: #00ff88; padding: 10px 35px; border-radius: 18px; font-weight: 900; font-size: 19px; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); box-shadow: 0 0 25px rgba(0, 255, 136, 0.2); animation: rewardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes rewardPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* Ücretsiz Hak Kutusunu Yatayda Zorla Ortalar */
-#daily-timer-box { 
-    margin: 0 auto 20px auto !important; 
-    width: max-content; 
-    text-align: center; 
+/* 🔥 ÜCRETSİZ HAKKA YAZISI ZORLA ORTALANDI 🔥 */
+#daily-timer-box {
+    align-self: center !important;
+    margin: 0 auto 20px auto !important;
+    width: fit-content !important;
+    display: block !important;
+    text-align: center !important;
 }
 
-/* Çevir Butonunu Yatayda Zorla Ortalar */
+/* 🔥 ÇEVİR BUTONU ZORLA ORTALANDI 🔥 */
 #spin-button {
-    width: 90%;
+    align-self: center !important;
+    margin: 0 auto !important;
+    width: 90% !important;
+    max-width: 350px !important;
     min-height: 80px; 
     border-radius: 22px;
     border: none;
@@ -181,13 +185,13 @@ main {
     font-size: 21px;
     text-transform: uppercase;
     box-shadow: 0 10px 30px rgba(0, 255, 136, 0.35);
-    margin: 0 auto; /* YATAY MERKEZLEME GARANTİSİ */
     display: flex;
     justify-content: center;
     align-items: center;
     transition: transform 0.1s, box-shadow 0.1s;
     cursor: pointer;
 }
+
 #spin-button:active { transform: scale(0.95); box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2); }
 
 /* 8. MODALLAR VE POPUP SİSTEMİ */
@@ -198,7 +202,6 @@ main {
 /* 9. MARKET EKRANI VE SPINNER EKLENTİSİ */
 .spinner { width: 45px; height: 45px; border: 5px solid #1e293b; border-top: 5px solid #00ff88; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
 #market-list { width: 100%; }
 
 ::-webkit-scrollbar { display: none; }
