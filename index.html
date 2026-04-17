@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoltPy SMM Bot - Premium</title>
+    <title>VoltPy SMM Bot - Nihai Sürüm</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* YÜKLEME EKRANI TASARIMI */
+        /* YÜKLEME EKRANI (Açılışta Eski Bakiyeyi Gizler) */
         #loading-overlay {
             position: fixed;
             top: 0;
@@ -24,42 +24,63 @@
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #1e293b;
-            border-top: 6px solid #00ff88;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #1e293b;
+            border-top: 5px solid #00ff88;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ÇARK KONTEYNER AYARI */
+        /* ÇARK YERLEŞİMİ VE ÖDÜL GÖSTERGESİ */
         .wheel-outer {
             position: relative;
             width: 320px;
             height: 320px;
-            margin: 20px auto;
+            margin: 20px auto 10px auto;
         }
 
         .wheel-pointer {
             position: absolute;
-            top: -15px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 30px solid #ff4444; /* Kırmızı ibre tam tepede */
+            border-top: 30px solid #ff4444;
             z-index: 10;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
         }
 
-        #wheel-canvas {
-            border-radius: 50%;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
-            border: 5px solid #1e293b;
+        #reward-display {
+            text-align: center;
+            height: 40px;
+            margin: 10px 0;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        #reward-text {
+            color: #00ff88;
+            font-size: 22px;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+        /* TAŞMA SORUNUNU ÇÖZEN EKRAN AYARI */
+        .screen {
+            padding-bottom: 120px; /* Menünün altında kalmayı engeller */
+            overflow-y: auto;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
         }
     </style>
 </head>
@@ -67,7 +88,7 @@
 
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p style="color: white; margin-top: 20px; font-family: 'Segoe UI', sans-serif; font-weight: bold; letter-spacing: 1px;">
+        <p style="color: white; margin-top: 20px; font-family: sans-serif; font-weight: bold;">
             BULUT SENKRONİZASYONU...
         </p>
     </div>
@@ -75,7 +96,7 @@
     <div id="app">
         <header class="top-bar">
             <div class="user-info">
-                ⚡ <span id="username">VoltPy</span>
+                ⚡ <span id="username">Yükleniyor...</span>
             </div>
             <div class="balance-container">
                 <span id="balance">0</span> 💰
@@ -102,16 +123,17 @@
 
             <section id="earn" class="screen">
                 <h2 class="screen-title">🎰 Şans Çarkı</h2>
-                <p style="text-align:center; color:#94a3b8; font-size: 12px; margin-bottom: 20px;">
-                    Büyük ödül için %1 şans! Denemeye cesaretin var mı?
-                </p>
                 
                 <div class="wheel-outer">
                     <div class="wheel-pointer"></div>
                     <canvas id="wheel-canvas" width="320" height="320"></canvas>
                 </div>
 
-                <div class="button-group" style="margin-top: 30px;">
+                <div id="reward-display">
+                    <span id="reward-text"></span>
+                </div>
+
+                <div class="button-group">
                     <button id="spin-button">ÇEVİR (100 💰)</button>
                 </div>
             </section>
