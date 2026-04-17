@@ -1,25 +1,26 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoltPy Casino & SMM - V9</title>
+    <title>VoltPy Casino & SMM - V14</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* Yükleme Ekranı: Veri gelene kadar kullanıcıyı karşılar */
+        /* CSS Yüklenene Kadar Bekleyen Spinner Stili */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #0f172a;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.5s ease;
+            z-index: 9999;
         }
         .spinner {
-            width: 50px; height: 50px;
+            width: 45px; height: 45px;
             border: 5px solid #1e293b;
             border-top: 5px solid #00ff88;
             border-radius: 50%;
@@ -32,8 +33,8 @@
 
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p style="color: white; margin-top: 20px; font-family: sans-serif; font-weight: bold; letter-spacing: 1px;">
-            VOLTPY YÜKLENİYOR...
+        <p style="color: #00ff88; margin-top: 15px; font-family: sans-serif; font-weight: bold; font-size: 13px; letter-spacing: 1px;">
+            VOLTPY SİSTEMİ BAŞLATILIYOR...
         </p>
     </div>
 
@@ -55,6 +56,11 @@
                 <span id="energy-text">500 / 500</span>
                 <span id="energy-regen-timer">+1 ⚡ / 60s</span>
             </div>
+            
+            <div id="energy-warning">
+                ENERJİ TÜKENDİ! 🪫 <br>
+                <span style="font-size: 9px; opacity: 0.8;">Lütfen dolmasını bekle veya reklam izle.</span>
+            </div>
         </div>
 
         <main>
@@ -63,11 +69,11 @@
                 <div class="ad-buttons-container">
                     <button id="energy-ad-btn" class="action-btn" onclick="window.watchAdForEnergy()">
                         <span>📺 ENERJİ AL</span>
-                        <span style="font-size: 13px; margin-top: 2px;">+250 ⚡</span>
+                        <span style="font-size: 12px; margin-top: 2px;">+250 ⚡</span>
                     </button>
                     <button id="turbo-btn" class="action-btn" onclick="window.startTurboMode()">
                         <span>🚀 TURBO MOD</span>
-                        <span style="font-size: 13px; margin-top: 2px;"><span id="ad-count">0</span>/20</span>
+                        <span style="font-size: 12px; margin-top: 2px;"><span id="ad-count">0</span>/20</span>
                     </button>
                 </div>
 
@@ -81,7 +87,7 @@
             </section>
 
             <section id="earn" class="screen">
-                <h2 class="screen-title">🎰 VoltPy Casino</h2>
+                <h2 class="screen-title" style="color:#00ff88; font-weight:900; margin-bottom: 15px;">🎰 VOLTPY CASINO</h2>
                 
                 <div class="wheel-outer">
                     <div class="wheel-pointer"></div>
@@ -92,20 +98,20 @@
                     <span id="reward-text"></span>
                 </div>
 
-                <div id="daily-timer-box" style="background: rgba(30, 41, 59, 0.6); padding: 8px 15px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                    <span style="color: #94a3b8; font-size: 11px; font-weight: bold;">ÜCRETSİZ HAKKA KALAN: </span>
-                    <span id="timer-val" style="color: #00ff88; font-family: monospace; font-weight: 900; font-size: 14px;">00:00:00</span>
+                <div id="daily-timer-box" style="background: rgba(30, 41, 59, 0.6); padding: 10px 20px; border-radius: 25px; margin-bottom: 20px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <span style="color: #94a3b8; font-size: 10px; font-weight: bold; text-transform: uppercase;">ÜCRETSİZ HAKKA: </span>
+                    <span id="timer-val" style="color: #00ff88; font-family: monospace; font-weight: 900; font-size: 15px;">00:00:00</span>
                 </div>
 
-                <div class="button-group" style="width: 100%; display: flex; justify-content: center;">
-                    <button id="spin-button">ÇEVİR (100 💰)</button>
-                </div>
+                <button id="spin-button">ÇEVİR (100 💰)</button>
             </section>
 
             <section id="market" class="screen">
-                <h2 class="screen-title">🛒 SMM Market</h2>
+                <h2 class="screen-title" style="color:#00ff88; font-weight:900; margin-bottom: 15px;">🛒 SMM MARKET</h2>
                 <div id="market-list">
-                    <p style="color: #94a3b8; text-align: center; margin-top: 20px;">Yakında eklenecek...</p>
+                    <p style="color: #94a3b8; text-align: center; margin-top: 50px;">
+                        Market ürünleri yakında stoklara eklenecektir.
+                    </p>
                 </div>
             </section>
         </main>
