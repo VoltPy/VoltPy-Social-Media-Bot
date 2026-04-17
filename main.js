@@ -1,6 +1,6 @@
 /**
- * VOLTPY SMM BOT - MAIN.JS (FULL SENKRONİZE SÜRÜM)
- * Geliştirici: Berke (VoltPy)
+ * VOLTPY SMM BOT - NİHAİ ANA DOSYA
+ * Özellikler: Ağırlıklı Olasılık (Kumar Mantığı), Canlı Senkronizasyon, Yükleme Perdesi Kontrolü
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. TELEGRAM & KULLANICI AYARLARI
+// 2. TELEGRAM & BAŞLANGIÇ VERİLERİ
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
@@ -29,35 +29,112 @@ const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('uid'); 
 const backupName = urlParams.get('name') || "Oyuncu";
 
-// GÜVENLİK DUVARI
-if (!userId || tg.platform === "unknown" || tg.platform === undefined) {
-    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:white;text-align:center;padding:20px;"><div><h1>🛑 ERİŞİM ENGELLENDİ</h1><p>Lütfen Telegram botu üzerinden giriş yapın.</p></div></div>`;
-    throw new Error("Sadece Telegram girişi.");
-}
-
-// Global Değişkenler (Firebase'den gelecek değerlerle güncellenecek)
-let balance = parseInt(urlParams.get('bal')) || 0;
-let currentEnergy = parseInt(urlParams.get('en')) || 500;
+// Global Değişkenler
+let balance = 0;
+let currentEnergy = 0;
 const maxEnergy = 500;
 let isSpinning = false;
+let firstDataLoaded = false;
 
-// 3. 📡 CANLI DİNLEME (REAL-TIME LISTENER)
-// Bu kısım sayesinde bulutta veri değiştiği an ekranın güncellenir.
-const userRef = ref(db, 'users/' + userId);
-onValue(userRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        // Eğer kullanıcı şu an bir işlem (çark çevirme vs) yapmıyorsa veriyi eşitle
-        if (!isSpinning) {
-            balance = data.balance || 0;
-            currentEnergy = data.energy || 0;
-            updateUI();
-            console.log("🔄 Bulut ile senkronize edildi!");
+// 3. 📡 CANLI VERİ DİNLEME (ONVALUE)
+if (userId) {
+    const userRef = ref(db, 'users/' + userId);
+    onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Eğer çark dönmüyorsa verileri güncelle (Çakışmayı önlemek için)
+            if (!isSpinning) {
+                balance = data.balance || 0;
+                currentEnergy = data.energy || 0;
+                updateUI();
+                
+                // İlk veri geldiğinde yükleme perdesini kaldır
+                if (!firstDataLoaded) {
+                    const overlay = document.getElementById('loading-overlay');
+                    if (overlay) {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 500);
+                    }
+                    firstDataLoaded = true;
+                }
+            }
         }
-    }
-});
+    });
+}
 
-// 4. ✍️ BULUTA YAZMA FONKSİYONU
+// 4. 🎲 ÇARK SİSTEMİ (Profesyonel Olasılık Ayarları)
+const rewards = [
+    { text: "BOŞ", type: "lose", val: 0, weight: 45 },      // %45 İhtimal (Zarar)
+    { text: "5 💰", type: "coin", val: 5, weight: 20 },     // %20 İhtimal
+    { text: "20 💰", type: "coin", val: 20, weight: 15 },   // %15 İhtimal
+    { text: "TEKRAR", type: "free", val: 100, weight: 10 }, // %10 İhtimal (Başa baş)
+    { text: "50 💰", type: "coin", val: 50, weight: 5 },    // %5 İhtimal
+    { text: "100 💰", type: "coin", val: 100, weight: 3 },  // %3 İhtimal
+    { text: "1000 💰", type: "coin", val: 1000, weight: 1 },// %1 İHTİMAL (BÜYÜK ÖDÜL)
+    { text: "FULL EN", type: "energy", val: 500, weight: 1 } // %1 İhtimal
+];
+
+// Olasılığa göre ödül seçen fonksiyon
+function getWeightedPrize() {
+    let totalWeight = rewards.reduce((sum, r) => sum + r.weight, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < rewards.length; i++) {
+        if (random < rewards[i].weight) return i;
+        random -= rewards[i].weight;
+    }
+    return 0;
+}
+
+let currentRotation = 0;
+
+const spinBtn = document.getElementById('spin-button');
+if (spinBtn) {
+    spinBtn.onclick = () => {
+        if (isSpinning || balance < 100) {
+            if (balance < 100) alert("Bakiyen yetersiz! Tıklayarak coin kazanabilirsin.");
+            return;
+        }
+
+        balance -= 100;
+        isSpinning = true;
+        updateUI();
+        bulutaYaz(); // Harcamayı hemen işle
+
+        const prizeIdx = getWeightedPrize();
+        const prize = rewards[prizeIdx];
+        
+        // Çarkın milimetrik hesaplanması
+        const segmentAngle = 360 / rewards.length;
+        // 5 tam tur + hedefin açısı (Hizalama için segmentin ortasına denk getiriyoruz)
+        const targetAngle = (360 - (prizeIdx * segmentAngle)); 
+        const totalSpin = currentRotation + 1800 + targetAngle; 
+        
+        currentRotation = totalSpin;
+
+        const canvas = document.getElementById('wheel-canvas');
+        canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.2, 1)';
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        setTimeout(() => {
+            isSpinning = false;
+            
+            if (prize.type === "coin") balance += prize.val;
+            if (prize.type === "energy") currentEnergy = maxEnergy;
+            if (prize.type === "free") balance += 100;
+
+            updateUI();
+            bulutaYaz(); // Ödülü hemen işle
+            
+            if (prize.type === "lose") {
+                alert("😔 Şansına küs! Çok yakındı...");
+            } else {
+                alert(`🎉 TEBRİKLER! ${prize.text} KAZANDIN!`);
+            }
+        }, 5000);
+    };
+}
+
+// 5. ✍️ BULUTA YAZMA FONKSİYONU
 function bulutaYaz() {
     if (!userId) return;
     set(ref(db, 'users/' + userId), {
@@ -65,10 +142,10 @@ function bulutaYaz() {
         energy: currentEnergy,
         username: backupName,
         lastUpdate: Date.now()
-    }).catch(err => console.error("❌ Kayıt Hatası:", err));
+    }).catch(err => console.error("Kayıt Hatası:", err));
 }
 
-// 5. ARAYÜZ GÜNCELLEME
+// 6. ARAYÜZ GÜNCELLEME
 function updateUI() {
     const b = document.getElementById('balance');
     const et = document.getElementById('energy-text');
@@ -79,7 +156,7 @@ function updateUI() {
     if (eb) eb.style.width = `${(currentEnergy / maxEnergy) * 100}%`;
 }
 
-// 6. TAPPER (TIKLAMA) SİSTEMİ
+// 7. TAPPER SİSTEMİ
 const tapBtn = document.getElementById('tap-button');
 if (tapBtn) {
     tapBtn.addEventListener('pointerdown', (e) => {
@@ -87,7 +164,7 @@ if (tapBtn) {
             balance++;
             currentEnergy--;
             updateUI();
-            bulutaYaz(); // Anlık Kayıt
+            bulutaYaz();
 
             // +1 Efekti
             const p = document.createElement('div');
@@ -97,23 +174,11 @@ if (tapBtn) {
             setTimeout(() => p.remove(), 800);
 
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-        } else {
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         }
     });
 }
 
-// 7. ŞANS ÇARKI (CANVAS)
-const rewards = [
-    { text: "BOŞ", type: "lose", val: 0 }, { text: "20 💰", type: "coin", val: 20 },
-    { text: "50 💰", type: "coin", val: 50 }, { text: "100 💰", type: "coin", val: 100 },
-    { text: "250 💰", type: "coin", val: 250 }, { text: "500 💰", type: "coin", val: 500 },
-    { text: "1000 💰", type: "coin", val: 1000 }, { text: "FULL EN", type: "energy", val: 500 },
-    { text: "5 💰", type: "coin", val: 5 }, { text: "TEKRAR", type: "free", val: 100 }
-];
-
-let currentRotation = 0;
-
+// 8. ÇARK ÇİZİMİ (Canvas)
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
@@ -121,8 +186,10 @@ function drawWheel() {
     const radius = canvas.width / 2;
     const arc = (2 * Math.PI) / rewards.length;
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     for (let i = 0; i < rewards.length; i++) {
-        const angle = i * arc - (Math.PI / 2) - (arc / 2);
+        const angle = i * arc - (Math.PI / 2); // 12 yönünden başlat
         ctx.beginPath();
         ctx.moveTo(radius, radius);
         ctx.arc(radius, radius, radius, angle, angle + arc);
@@ -133,58 +200,27 @@ function drawWheel() {
         ctx.rotate(angle + arc / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
-        ctx.font = "bold 14px Arial";
+        ctx.font = "bold 13px Arial";
         ctx.fillText(rewards[i].text, radius - 15, 5);
         ctx.restore();
     }
 }
 
-const spinBtn = document.getElementById('spin-button');
-if (spinBtn) {
-    spinBtn.onclick = () => {
-        if (isSpinning || balance < 100) return;
-        
-        balance -= 100;
-        isSpinning = true;
-        updateUI();
-        bulutaYaz();
-
-        const prizeIdx = Math.floor(Math.random() * rewards.length);
-        const prize = rewards[prizeIdx];
-        const targetRotation = currentRotation + 1440 + (360 - (prizeIdx * (360 / rewards.length)));
-        currentRotation = targetRotation;
-
-        const canvas = document.getElementById('wheel-canvas');
-        canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0, 0.1, 1)';
-        canvas.style.transform = `rotate(${currentRotation}deg)`;
-
-        setTimeout(() => {
-            isSpinning = false;
-            if (prize.type === "coin") balance += prize.val;
-            if (prize.type === "energy") currentEnergy = maxEnergy;
-            if (prize.type === "free") balance += 100;
-            updateUI();
-            bulutaYaz();
-            alert(`🎁 Kazancın: ${prize.text}`);
-        }, 4000);
-    };
-}
-
-// 8. MARKET & GLOBAL FONKSİYONLAR
+// 9. MARKET SİSTEMİ
 window.buyItem = function(name, price) {
     if (balance >= price) {
         if (confirm(`${name} satın alınsın mı?`)) {
             balance -= price;
             updateUI();
             bulutaYaz();
-            alert("✅ Sipariş başarılı!");
+            alert("✅ Siparişiniz işleme alındı!");
         }
     } else {
-        alert("❌ Bakiye yetersiz!");
+        alert("❌ Yetersiz bakiye!");
     }
 };
 
-// 9. BAŞLATMA VE NAVİGASYON
+// 10. NAVİGASYON VE BAŞLATMA
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         const target = btn.getAttribute('data-target');
@@ -198,8 +234,8 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 function init() {
     const userDisplay = document.getElementById('username');
     if (userDisplay) userDisplay.textContent = tg.initDataUnsafe?.user?.first_name || backupName;
-    
-    // Market Ürünlerini Listele
+
+    // Market İçeriğini Bas
     const mList = document.getElementById('market-list');
     if (mList) {
         const items = [
@@ -214,7 +250,7 @@ function init() {
             </div>
         `).join('');
     }
-    
+
     updateUI();
     drawWheel();
 }
