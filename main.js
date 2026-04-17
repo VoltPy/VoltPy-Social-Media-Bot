@@ -58,7 +58,7 @@ if (userId) {
             adCount = data.adCount || 0;
             lastAdHour = data.lastAdHour || new Date().getHours();
 
-            // Saatlik reklam limitini kontrol et
+            // Saatlik reklam limitini kontrol et (Yeni saate girildiyse sıfırla)
             if (new Date().getHours() !== lastAdHour) { adCount = 0; }
 
             // Çevrimdışı dolan enerji (1⚡ / 60sn)
@@ -91,14 +91,14 @@ function tick() {
     if (freeRoundsLeft > 0) {
         spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
         spinBtn.style.background = "linear-gradient(45deg, #f59e0b, #ef4444)";
-        timerVal.textContent = "🔥 FRENZY MODU 🔥";
+        if (timerVal) timerVal.textContent = "🔥 FRENZY MODU 🔥";
     } else if (diff <= 0) {
         spinBtn.textContent = "ÜCRETSİZ ÇEVİR";
         spinBtn.style.background = "linear-gradient(45deg, #00ff88, #00d4ff)";
-        timerVal.textContent = "HAKKIN HAZIR!";
+        if (timerVal) timerVal.textContent = "HAKKIN HAZIR!";
     } else {
         const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-        timerVal.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        if (timerVal) timerVal.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         spinBtn.textContent = `ÇEVİR (${cost} 💰)`;
         spinBtn.style.background = "";
     }
@@ -128,7 +128,10 @@ document.getElementById('spin-button').onclick = () => {
         lastFreeSpin = now;
         spinCount = 0; // Ücretsiz hak alınca zammı sıfırla
     } else {
-        if (balance < cost) return alert("Bakiye Yetersiz!");
+        if (balance < cost) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            return alert("Bakiye Yetersiz!");
+        }
         balance -= cost;
         spinCount++;
     }
@@ -155,12 +158,19 @@ document.getElementById('spin-button').onclick = () => {
 
     setTimeout(() => {
         isSpinning = false;
-        if (prize.type === "frenzy") { freeRoundsLeft = 3; document.body.style.boxShadow = "inset 0 0 80px #ef4444"; setTimeout(()=>document.body.style.boxShadow="none",1000); }
+        if (prize.type === "frenzy") { 
+            freeRoundsLeft = 3; 
+            document.body.style.boxShadow = "inset 0 0 80px #ef4444"; 
+            setTimeout(()=>document.body.style.boxShadow="none",1000); 
+        }
         else if (prize.type === "energy") { currentEnergy = 500; }
         else { balance += prize.val; }
+        
         updateUI(); bulutaYaz();
-        document.getElementById('reward-text').textContent = prize.type === "frenzy" ? "🔥 X3 BONUS KAZANDIN! 🔥" : `KAZANÇ: ${prize.text}`;
-        document.getElementById('reward-text').style.display = 'block';
+        const rt = document.getElementById('reward-text');
+        rt.textContent = prize.type === "frenzy" ? "🔥 X3 BONUS KAZANDIN! 🔥" : `KAZANÇ: ${prize.text}`;
+        rt.style.display = 'block';
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     }, 5000);
 };
 
@@ -183,15 +193,20 @@ function startAutoClicker() {
     document.body.classList.add('turbo-active');
     document.getElementById('turbo-status').style.display = 'block';
     document.getElementById('turbo-btn').disabled = true;
+    // Navigasyonu kilitle
     document.querySelector('.bottom-nav').style.pointerEvents = 'none';
 
     autoClickInterval = setInterval(() => {
         if (currentEnergy > 0) {
             balance++; currentEnergy--; updateUI();
+            
+            // Görsel +1 efekti
             const p = document.createElement('div'); p.innerText = '+1'; p.className = 'plus-one';
             p.style.left = (window.innerWidth / 2 + (Math.random()*60-30)) + 'px';
             p.style.top = (window.innerHeight / 2 + (Math.random()*60-30)) + 'px';
             document.body.appendChild(p); setTimeout(() => p.remove(), 500);
+            
+            // Performans için her 15 tıklamada bir veritabanına yaz
             if (currentEnergy % 15 === 0) bulutaYaz();
         } else { stopAutoClicker(); }
     }, 80);
@@ -212,6 +227,7 @@ function stopAutoClicker() {
 // 8. 🎨 ÇARK ÇİZİMİ
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const radius = canvas.width / 2, arc = (2 * Math.PI) / rewards.length;
     for (let i = 0; i < rewards.length; i++) {
@@ -233,10 +249,15 @@ function bulutaYaz() {
 }
 
 function updateUI() {
-    document.getElementById('balance').textContent = balance;
-    document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
-    document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
-    document.getElementById('ad-count').textContent = adCount;
+    const b = document.getElementById('balance');
+    const et = document.getElementById('energy-text');
+    const eb = document.getElementById('energy-bar');
+    const ac = document.getElementById('ad-count');
+    
+    if (b) b.textContent = balance;
+    if (et) et.textContent = `${currentEnergy} / 500`;
+    if (eb) eb.style.width = `${(currentEnergy / 500) * 100}%`;
+    if (ac) ac.textContent = adCount;
 }
 
 // 10. TAPPER VE NAVİGASYON
@@ -248,6 +269,10 @@ document.getElementById('tap-button').addEventListener('pointerdown', (e) => {
         p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
         document.body.appendChild(p); setTimeout(() => p.remove(), 800);
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    } else {
+        if (confirm("Enerjin bitti! Reklam izleyerek +150 enerji kazanmak ister misin?")) {
+            window.reklamIzle();
+        }
     }
 });
 
