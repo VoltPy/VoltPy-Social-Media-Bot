@@ -1,39 +1,254 @@
-/**
- * VOLTPY SMM BOT - MAIN.JS (V3 - FULL AUTOMATIC)
- */
+/* --- VOLTPY SMM BOT | FULL STABLE UI V3 --- */
+:root {
+    --bg-color: #0f172a; 
+    --card-bg: #1e293b;
+    --accent-color: #00ff88; /* Volt Yeşili */
+    --text-color: #f8fafc;
+    --hint-color: #94a3b8;
+    --gold: #fbbf24;
+}
 
-// 1. TELEGRAM SDK VE BAŞLANGIÇ AYARLARI
-const tg = window.Telegram?.WebApp || {};
-if (tg.expand) tg.expand();
-if (tg.ready) tg.ready();
+/* Temel Sıfırlama */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Metin seçimini ve mobil gecikmeleri kapat */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
 
-// URL parametrelerini oku (Python backend'den gelenler)
-const urlParams = new URLSearchParams(window.location.search);
-let balance = parseInt(urlParams.get('bal')) || 0;
-let currentEnergy = parseInt(urlParams.get('en')) || 500;
-const backupName = urlParams.get('name') || "Oyuncu";
-const maxEnergy = 500;
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Sayfanın kaymasını engelle */
+}
 
-let isSpinning = false;
-let autoClickActive = false;
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
 
-// 2. ÖDÜL LİSTESİ (10 Segment)
-const rewards = [
-    { text: "BOŞ", type: "lose", val: 0 },
-    { text: "20 💰", type: "coin", val: 20 },
-    { text: "50 💰", type: "coin", val: 50 },
-    { text: "100 💰", type: "coin", val: 100 },
-    { text: "250 💰", type: "coin", val: 250 },
-    { text: "500 💰", type: "coin", val: 500 },
-    { text: "1000 💰", type: "coin", val: 1000 },
-    { text: "FULL ENERJİ", type: "energy", val: 500 },
-    { text: "AUTO CLICK", type: "auto", val: 0 },
-    { text: "BİR DAHA", type: "free", val: 100 }
-];
+/* --- ÜST PANEL --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(15, 23, 42, 0.95);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
 
-// 3. ELEMENTLERİ SEÇ
-const elements = {
-    balance: document.getElementById('balance'),
+.user-info { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.user-info i { color: var(--accent-color); font-size: 22px; }
+
+.balance-container {
+    background: var(--card-bg);
+    padding: 8px 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.balance-container i { color: var(--gold); }
+
+/* --- EKRAN YÖNETİMİ --- */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    width: 100%;
+    align-items: center;
+}
+
+.screen.active {
+    display: flex !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ANA EKRAN (VOLT BUTONU) --- */
+#home-screen { justify-content: space-around; padding-bottom: 110px; }
+
+.coin-wrapper {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, var(--accent-color) 0%, #008844 100%);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.25);
+    cursor: pointer;
+    transition: transform 0.05s;
+}
+
+.coin-wrapper:active { transform: scale(0.93); }
+
+.coin-inner {
+    width: 220px;
+    height: 220px;
+    border: 4px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.coin-inner i { font-size: 80px; color: white; }
+.coin-inner span { font-size: 26px; font-weight: 900; color: white; letter-spacing: 2px; }
+
+/* Enerji Barı */
+.energy-section { width: 100%; max-width: 350px; }
+.energy-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: bold; }
+.energy-bar-container { height: 12px; background: var(--card-bg); border-radius: 20px; overflow: hidden; }
+.energy-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-color), #00ffcc); transition: width 0.3s linear; }
+
+/* --- ŞANSLI VOLT (ÇARKIN DÜZELTİLDİĞİ KISIM) --- */
+.wheel-box {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid var(--accent-color);
+    z-index: 100;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden; /* DIŞARI TAŞAN DİLİMLERİ KESER (KRİTİK!) */
+    border: 8px solid var(--card-bg);
+    background: var(--card-bg);
+    transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.segment {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    left: 50%;
+    top: 50%;
+    transform-origin: 0 0; /* Dilimleri merkezden başlatır */
+    display: flex;
+    justify-content: center;
+}
+
+.segment:nth-child(odd) { background: #1e293b; }
+.segment:nth-child(even) { background: #334155; }
+
+.segment span {
+    position: absolute;
+    top: -110px; /* Yazıları merkeze yaklaştırır */
+    left: 20px;
+    transform: rotate(18deg); /* Yazıyı dilime göre dikleştirir */
+    font-size: 10px;
+    font-weight: 800;
+    width: 60px;
+    text-align: center;
+    color: white;
+}
+
+/* --- BUTONLAR VE MARKET --- */
+.action-btn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 16px;
+    width: 100%;
+    border-radius: 15px;
+    font-weight: 900;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.market-item {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* --- ALT MENÜ --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    background: rgba(30, 41, 59, 0.98);
+    padding: 12px 0 30px;
+    border-radius: 20px 20px 0 0;
+    backdrop-filter: blur(10px);
+}
+
+.nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--hint-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.nav-btn i { font-size: 22px; }
+.nav-btn.active { color: var(--accent-color); }
+
+/* +1 Animasyonu */
+.plus-one {
+    position: fixed;
+    color: var(--accent-color);
+    font-size: 28px;
+    font-weight: 900;
+    pointer-events: none;
+    animation: floatUp 0.8s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-130px); }
+}
     energyText: document.getElementById('energy-text'),
     energyBar: document.getElementById('energy-bar'),
     tapButton: document.getElementById('tap-button'),
