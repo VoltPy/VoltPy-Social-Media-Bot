@@ -1,5 +1,5 @@
 /**
- * VOLTPY SMM BOT - MAIN.JS (TAM SÜRÜM - SÜREKLİ TARAMA)
+ * VOLTPY SMM BOT - MAIN.JS (TAM SÜRÜM - RENKLİ ÇARK & SÜREKLİ KAYIT)
  * Geliştirici: Berke (VoltPy)
  */
 
@@ -117,7 +117,7 @@ if (tapButton) {
     });
 }
 
-// 7. ŞANS ÇARKI MANTIĞI
+// 7. ŞANS ÇARKI MANTIĞI VE TASARIMI
 const rewards = [
     { text: "BOŞ", type: "lose", val: 0 },
     { text: "20 💰", type: "coin", val: 20 },
@@ -134,16 +134,40 @@ const rewards = [
 function createWheel() {
     const wheel = document.getElementById('lucky-wheel');
     if (!wheel) return;
+    wheel.innerHTML = ''; // Eski bozuk çizimleri temizle
     const deg = 360 / rewards.length; 
 
     rewards.forEach((r, i) => {
         const seg = document.createElement('div');
         seg.className = 'segment';
+        
+        // CSS OLMADAN JS İLE DİLİM TASARIMI
+        seg.style.position = 'absolute';
+        seg.style.width = '50%';
+        seg.style.height = '50%';
+        seg.style.transformOrigin = '100% 100%';
+        seg.style.left = '0';
+        seg.style.top = '0';
+        
+        // Renkler: Volt Yeşili ve Koyu Lacivert/Gri değişimi
+        seg.style.backgroundColor = i % 2 === 0 ? '#00ff88' : '#1e293b';
+        seg.style.border = '1px solid rgba(0, 0, 0, 0.2)';
         seg.style.transform = `rotate(${i * deg}deg) skewY(${90 - deg}deg)`;
 
         const span = document.createElement('span');
         span.innerText = r.text;
-        span.style.transform = `skewY(-${90 - deg}deg) rotate(${deg / 2}deg)`;
+        
+        // YAZI DÜZENİ
+        span.style.position = 'absolute';
+        span.style.left = '100%';
+        span.style.top = '100%';
+        span.style.transformOrigin = '0 0';
+        span.style.fontSize = '12px';
+        span.style.fontWeight = '900';
+        span.style.color = i % 2 === 0 ? '#000000' : '#ffffff'; 
+        
+        // Yazıyı dilimin ortasına çekme
+        span.style.transform = `skewY(-${90 - deg}deg) rotate(${deg / 2}deg) translate(15px, -8px)`;
 
         seg.appendChild(span);
         wheel.appendChild(seg);
@@ -200,11 +224,11 @@ function loadMarket() {
     ];
 
     marketList.innerHTML = items.map(i => `
-        <div class="market-item" style="background: #1e293b; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="market-item" style="background: #1e293b; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;">
             <div class="item-details">
                 <h3 style="margin: 0; font-size: 16px;">${i.name}</h3>
             </div>
-            <button class="buy-btn" onclick="buyItem('${i.name}', ${i.price})" style="background: #00ff88; color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">${i.price} 💰</button>
+            <button class="buy-btn" onclick="buyItem('${i.name}', ${i.price})" style="background: #00ff88; color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; box-shadow: 0 0 5px rgba(0,255,136,0.3);">${i.price} 💰</button>
         </div>
     `).join('');
 }
