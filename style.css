@@ -1,24 +1,24 @@
 /* VOLTPY CASINO & SMM - NİHAİ STYLE.CSS 
     Geliştirici: Berke (VoltPy)
-    Özellikler: Turbo Animasyonlar, Mobil Uyumluluk, Katmanlı Yerleşim
+    Tema: Dark & Neon (Casino Style)
 */
 
-/* 1. GENEL RESET VE TASARIM */
+/* 1. TEMEL AYARLAR VE SIFIRLAMA */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    user-select: none; /* Metin seçilmesini engelle (Tapper için kritik) */
+    -webkit-tap-highlight-color: transparent; /* Mobil dokunma gölgesini kaldır */
 }
 
 body {
-    background-color: #0f172a; /* Derin Gece Mavisi */
+    background-color: #0f172a; /* Derin Uzay Mavisi */
     color: #ffffff;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* Dış kaydırmayı engelle, sadece ekran içi kaydır */
+    overflow: hidden; /* Sayfa dışına taşmayı engelle */
 }
 
 #app {
@@ -27,14 +27,14 @@ body {
     height: 100vh;
 }
 
-/* 2. ÜST BİLGİ PANELİ */
+/* 2. ÜST BİLGİ PANELİ (User & Balance) */
 .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
     background: rgba(30, 41, 59, 0.8);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 100;
 }
@@ -42,27 +42,28 @@ body {
 .user-info {
     font-weight: 800;
     color: #00ff88;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
 .balance-container {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #00ff88;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
 }
 
-/* 3. ENERJİ VE REGEN SİSTEMİ */
+/* 3. ENERJİ BÖLÜMÜ VE REGEN SAYACI */
 .energy-section {
     padding: 10px 20px;
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(15, 23, 42, 0.6);
 }
 
 .energy-bar-bg {
     width: 100%;
-    height: 12px;
+    height: 14px;
     background: #1e293b;
-    border-radius: 6px;
+    border-radius: 7px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -71,15 +72,15 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #00ff88, #00d4ff);
     width: 100%;
-    transition: width 0.4s ease-out;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .energy-info {
     display: flex;
     justify-content: space-between;
-    margin-top: 5px;
+    margin-top: 6px;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 800;
     color: #94a3b8;
 }
 
@@ -91,7 +92,7 @@ main {
 }
 
 .screen {
-    display: none;
+    display: none; /* JS ile açılacak */
     position: absolute;
     top: 0;
     left: 0;
@@ -99,7 +100,7 @@ main {
     height: 100%;
     padding: 20px;
     overflow-y: auto;
-    padding-bottom: 160px; /* Menünün altında kalmayı engellemek için KRİTİK alan */
+    padding-bottom: 180px; /* Navigasyonun altına girmemesi için en kritik alan */
 }
 
 .screen.active {
@@ -114,56 +115,45 @@ main {
     color: #00ff88;
     margin-bottom: 20px;
     text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
 }
 
-/* 5. TAPPER (TIKLAMA) VE TURBO MODU */
+/* 5. TAPPER VE TURBO MODU EFEKTLERİ */
 #home {
     justify-content: center;
 }
 
 #tap-button {
-    width: 240px;
-    height: 240px;
+    width: 250px;
+    height: 250px;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 10px solid #1e293b;
-    box-shadow: 0 0 40px rgba(0, 255, 136, 0.1);
-    cursor: pointer;
-    transition: 0.1s;
+    border: 12px solid #1e293b;
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.1);
+    transition: transform 0.05s linear;
 }
 
 #tap-button img {
-    width: 130px;
+    width: 140px;
     pointer-events: none;
 }
 
-/* TURBO AKTİF EFEKTİ */
+/* TURBO AKTİF OLUNCA BUTONUN PARLAMASI VE ATMASI */
 .turbo-active #tap-button {
     border-color: #fbbf24 !important;
-    box-shadow: 0 0 60px rgba(251, 191, 36, 0.6) !important;
-    animation: pulse-turbo 0.4s infinite alternate;
+    box-shadow: 0 0 70px rgba(251, 191, 36, 0.7) !important;
+    animation: turbo-pulse 0.4s infinite alternate;
 }
 
-@keyframes pulse-turbo {
+@keyframes turbo-pulse {
     from { transform: scale(1); }
-    to { transform: scale(1.08); }
+    to { transform: scale(1.06); }
 }
 
-#turbo-status {
-    color: #fbbf24;
-    font-size: 12px;
-    font-weight: 900;
-    margin-top: 15px;
-    display: none;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-}
-
-/* 6. ÇARK (CASINO) TASARIMI */
+/* 6. ÇARK (LUCKY WHEEL) TASARIMI */
 .wheel-outer {
     position: relative;
     width: 310px;
@@ -182,8 +172,8 @@ main {
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-top: 30px solid #ff4444;
-    z-index: 20;
-    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
+    z-index: 50;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
 }
 
 #wheel-canvas {
@@ -191,36 +181,41 @@ main {
     height: 100%;
     border-radius: 50%;
     border: 6px solid #1e293b;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+#reward-display {
+    min-height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
 }
 
 #reward-text {
-    font-size: 22px;
-    font-weight: 900;
-    color: #00ff88;
-    height: 30px;
-    text-shadow: 0 0 15px rgba(0,255,136,0.6);
+    animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-#daily-timer-box {
-    margin: 15px 0;
-    border: 1px solid rgba(0, 255, 136, 0.2);
+@keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 #spin-button {
     width: 85%;
     padding: 18px;
-    border-radius: 35px;
+    border-radius: 40px;
     border: none;
     background: linear-gradient(45deg, #00ff88, #00bd65);
     color: #0f172a;
     font-weight: 900;
-    font-size: 18px;
+    font-size: 19px;
     box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
     transition: 0.2s;
+    cursor: pointer;
 }
 
-#spin-button:active { transform: scale(0.96); }
+#spin-button:active { transform: scale(0.97); }
 
 /* 7. MARKET ÜRÜNLERİ */
 .market-item {
@@ -245,14 +240,14 @@ main {
     font-size: 14px;
 }
 
-/* 8. NAVİGASYON (SABİT ALT BAR) */
+/* 8. NAVİGASYON (ALT BAR) */
 .bottom-nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(20px);
-    padding: 12px 0 35px 0; /* Telegram alt barı için */
+    padding: 12px 0 35px 0; /* Telegram alt çizgisi için */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     position: fixed;
     bottom: 0;
@@ -268,13 +263,24 @@ main {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    width: 33%;
+    width: 33.3%;
     transition: 0.3s;
 }
 
-.nav-btn.active { color: #00ff88; }
-.nav-icon { font-size: 24px; }
-.nav-text { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
+.nav-btn.active {
+    color: #00ff88;
+}
+
+.nav-icon {
+    font-size: 24px;
+}
+
+.nav-text {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
 
 /* 9. ANİMASYONLAR */
 @keyframes fadeOutUp {
@@ -287,11 +293,12 @@ main {
     pointer-events: none;
     color: #00ff88;
     font-weight: 900;
-    font-size: 26px;
+    font-size: 28px;
     z-index: 9999;
     animation: fadeOutUp 0.8s ease-out forwards;
     text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
-/* Kaydırma çubuğunu gizle */
+/* Kaydırma çubuklarını tüm tarayıcılarda gizle */
 ::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
