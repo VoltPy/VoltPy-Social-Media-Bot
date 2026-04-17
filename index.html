@@ -7,91 +7,30 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* YÜKLEME EKRANI (Açılışta Eski Bakiyeyi Gizler) */
+        /* Yükleme Ekranı Stili (Hızlı Erişim İçin Burada) */
         #loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #0f172a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease;
         }
-
         .spinner {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 5px solid #1e293b;
             border-top: 5px solid #00ff88;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* ÇARK YERLEŞİMİ VE ÖDÜL GÖSTERGESİ */
-        .wheel-outer {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            margin: 20px auto 10px auto;
-        }
-
-        .wheel-pointer {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #ff4444;
-            z-index: 10;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
-        }
-
-        #reward-display {
-            text-align: center;
-            height: 40px;
-            margin: 10px 0;
-            font-family: 'Arial Black', sans-serif;
-        }
-
-        #reward-text {
-            color: #00ff88;
-            font-size: 22px;
-            font-weight: 900;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-
-        /* GÜNLÜK SAYACIN TASARIMI */
-        #free-spin-timer {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 13px;
-            margin-bottom: 15px;
-            font-weight: bold;
-            background: rgba(30, 41, 59, 0.5);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-        }
     </style>
 </head>
 <body>
 
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p style="color: white; margin-top: 20px; font-family: sans-serif; font-weight: bold;">
+        <p style="color: white; margin-top: 20px; font-family: sans-serif; font-weight: bold; font-size: 14px; letter-spacing: 1px;">
             BULUT SENKRONİZASYONU...
         </p>
     </div>
@@ -99,7 +38,7 @@
     <div id="app">
         <header class="top-bar">
             <div class="user-info">
-                ⚡ <span id="username">Yükleniyor...</span>
+                ⚡ <span id="username">VoltPy</span>
             </div>
             <div class="balance-container">
                 <span id="balance">0</span> 💰
@@ -108,10 +47,16 @@
 
         <div class="energy-section">
             <div class="energy-bar-bg">
-                <div id="energy-bar" style="width: 100%;"></div>
+                <div id="energy-bar"></div>
             </div>
             <div class="energy-info">
                 <span id="energy-text">500 / 500</span>
+                <span id="energy-regen-timer" style="color: #00ff88;">+1 ⚡ / 60sn</span>
+            </div>
+            <div style="text-align: center; margin-top: 8px;">
+                <button onclick="window.reklamIzle()" style="background: rgba(251, 191, 36, 0.15); border: 1px solid #fbbf24; color: #fbbf24; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">
+                    📺 REKLAM İZLE (+150 ⚡)
+                </button>
             </div>
         </div>
 
@@ -124,7 +69,7 @@
                 </div>
             </section>
 
-            <section id="earn" class="screen" style="text-align: center;">
+            <section id="earn" class="screen">
                 <h2 class="screen-title">🎰 Şans Çarkı</h2>
                 
                 <div class="wheel-outer">
@@ -136,8 +81,8 @@
                     <span id="reward-text"></span>
                 </div>
 
-                <div id="free-spin-timer">
-                    Ücretsiz hak: <span id="timer-val">Bekleyin...</span>
+                <div style="margin-bottom: 10px; font-size: 12px; color: #94a3b8; font-weight: bold;">
+                    Ücretsiz Hakka Kalan: <span id="timer-val" style="color: #00ff88;">--:--:--</span>
                 </div>
 
                 <div class="button-group">
