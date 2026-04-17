@@ -1,9 +1,11 @@
-/* VOLTPY TAPPER & CASINO - V20 NİHAİ 
-    Geliştirici: Berke (VoltPy)
-    Cihaz: Poco X7 Pro Optimizasyonlu
-*/
+/**
+ * VOLTPY TAPPER & CASINO - NİHAİ SÜRÜM (V20)
+ * Geliştirici: Berke (VoltPy)
+ * Cihaz: Poco X7 Pro (120Hz) Optimizasyonlu
+ * Özellikler: Kalın Spin Butonu, Neon VIP Ödül Kartı, Turbo Fix, Modal, Neon Alerts
+ */
 
-/* 1. SİSTEM VE MOBİL RESET */
+/* 1. SİSTEM RESET & MOBİL GÜVENLİK */
 * {
     margin: 0;
     padding: 0;
@@ -16,12 +18,12 @@
 }
 
 html, body {
-    background-color: #020617;
+    background-color: #020617; /* Cyberpunk Derin Mavi */
     color: #f8fafc;
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    touch-action: manipulation;
+    touch-action: manipulation; /* Çift tıklama zoomunu ve kaymayı engeller */
 }
 
 #app {
@@ -30,7 +32,27 @@ html, body {
     height: 100vh;
 }
 
-/* 2. ÜST PANEL */
+/* 2. YÜKLEME EKRANI (SPINNER) */
+#loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #020617;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 45px; height: 45px;
+    border: 5px solid #1e293b;
+    border-top: 5px solid #00ff88;
+    border-radius: 50%;
+    animation: spin-anim 1s linear infinite;
+}
+
+@keyframes spin-anim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* 3. ÜST PANEL (BAKİYE & KULLANICI) */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -43,9 +65,14 @@ html, body {
 }
 
 .user-info { font-weight: 800; color: #00ff88; font-size: 14px; }
-.balance-container { font-size: 22px; font-weight: 900; color: #00ff88; text-shadow: 0 0 15px rgba(0, 255, 136, 0.5); }
+.balance-container { 
+    font-size: 22px; 
+    font-weight: 900; 
+    color: #00ff88; 
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.5); 
+}
 
-/* 3. ENERJİ SİSTEMİ */
+/* 4. ENERJİ SİSTEMİ (ALARM MODU) */
 .energy-section {
     padding: 12px 15px;
     background: rgba(15, 23, 42, 0.7);
@@ -67,6 +94,7 @@ html, body {
     transition: width 0.3s ease-out;
 }
 
+/* Enerji bittiğinde barın kırmızı yanıp sönmesi */
 .energy-empty #energy-bar {
     background: linear-gradient(90deg, #ff4444, #991b1b) !important;
     animation: energy-pulse 1s infinite;
@@ -86,7 +114,7 @@ html, body {
     color: #94a3b8;
 }
 
-/* 4. ENERJİ TÜKENDİ UYARI METNİ */
+/* 5. NEON UYARILAR VE DURUMLAR */
 #energy-warning {
     display: none;
     background: rgba(255, 68, 68, 0.08);
@@ -102,13 +130,12 @@ html, body {
     text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
 }
 
-/* 5. TURBO DURUMU (NEON TURUNCU) */
 #turbo-status {
     display: none;
-    color: #ff8c00;
+    color: #ff8c00; /* Neon Turuncu */
     font-size: 13px;
     font-weight: 900;
-    margin: 30px 0;
+    margin: 30px 0; /* İSTEK: Araya mesafe koyuldu */
     text-align: center;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -118,10 +145,10 @@ html, body {
 
 @keyframes orange-pulse {
     0%, 100% { opacity: 0.7; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 25px #ff8c00; }
+    50% { opacity: 1; transform: scale(1.05); }
 }
 
-/* 6. TAPPER BUTONU - MEKANİK VE STATİK */
+/* 6. TAPPER BUTONU - MEKANİK & SABİT */
 #tap-button {
     width: 240px;
     height: 240px;
@@ -140,7 +167,11 @@ html, body {
 
 #tap-button img { width: 140px; pointer-events: none; }
 #tap-button.active-tap { border-color: #ffffff; box-shadow: 0 0 60px rgba(0, 255, 136, 0.8); }
-.shake { animation: shake-anim 0.2s ease-in-out; border-color: #ff4444 !important; }
+
+.shake {
+    animation: shake-anim 0.2s ease-in-out;
+    border-color: #ff4444 !important;
+}
 
 @keyframes shake-anim {
     0%, 100% { transform: translateX(0); }
@@ -166,7 +197,7 @@ html, body {
     100% { opacity: 0; transform: translate(-50%, -180px); }
 }
 
-/* 8. POPUP (MODAL) SİSTEMİ */
+/* 8. ENERJİ MODAL (POPUP) */
 #energy-modal {
     display: none;
     position: fixed;
@@ -202,32 +233,40 @@ html, body {
     text-transform: uppercase;
 }
 
-/* 9. CASINO EKRANI (KALIN BUTON & ÖDÜL KARTI) */
+/* 9. CASINO (KAZAN) EKRANI GÜNCELLEMELERİ */
 .wheel-outer { position: relative; width: 280px; height: 280px; margin: 10px auto; }
 #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #1e293b; }
-.wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 50; }
+.wheel-pointer {
+    position: absolute;
+    top: -15px; left: 50%;
+    transform: translateX(-50%);
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #ff4444;
+    z-index: 50;
+}
 
-/* ÖDÜL KARTI TASARIMI */
+/* VIP ÖDÜL KARTI TASARIMI */
 #reward-display {
-    height: 55px;
+    height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 #reward-text {
+    display: none; /* JS ile görünür olacak */
     background: rgba(0, 255, 136, 0.1);
     border: 2px solid #00ff88;
     color: #00ff88;
-    padding: 8px 30px;
-    border-radius: 15px;
+    padding: 10px 30px;
+    border-radius: 20px;
     font-weight: 900;
     font-size: 18px;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
     box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-    display: none; /* JS tetikleyince inline-block olur */
     animation: rewardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -236,7 +275,7 @@ html, body {
     to { transform: scale(1); opacity: 1; }
 }
 
-/* KALIN ÇEVİR BUTONU */
+/* KALIN SPIN BUTONU */
 #spin-button {
     width: 90%;
     height: 75px; /* İSTEK: Kalınlaştırıldı */
@@ -245,21 +284,23 @@ html, body {
     background: linear-gradient(45deg, #00ff88, #00bd65);
     color: #020617;
     font-weight: 900;
-    font-size: 20px; /* Yazı büyütüldü */
+    font-size: 20px; /* İSTEK: Yazı büyütüldü */
     text-transform: uppercase;
+    letter-spacing: 1px;
     box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
-    margin-top: 10px;
+    cursor: pointer;
+    margin-top: 15px;
     transition: transform 0.1s;
 }
 
 #spin-button:active { transform: scale(0.96); }
 
-/* 10. REKLAM BUTONLARI VE NAV */
+/* 10. REKLAM BUTONLARI VE ALT NAVİGASYON */
 .ad-buttons-container {
     display: flex;
     gap: 12px;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     width: 100%;
 }
 
@@ -275,6 +316,7 @@ html, body {
     display: flex; justify-content: space-around; align-items: center;
     background: rgba(15, 23, 42, 0.98); padding: 10px 0 35px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1); position: fixed; bottom: 0; width: 100%;
+    z-index: 1000;
 }
 
 .nav-btn { background: none; border: none; color: #64748b; display: flex; flex-direction: column; align-items: center; width: 33%; }
@@ -282,7 +324,7 @@ html, body {
 .nav-icon { font-size: 24px; }
 .nav-text { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 3px; }
 
-/* 11. EKRANLAR */
+/* 11. EKRAN KONTROLLERİ */
 main { flex: 1; position: relative; overflow: hidden; }
 .screen {
     display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
