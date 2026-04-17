@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V34 (DUVAR YUMRUKLATMAYAN KESİN ÇÖZÜM)
+ * VOLTPY TAPPER & CASINO - V35 (FİNAL DOKUNUŞ)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Tüm yatay/dikey hizalamalar !important ile zorunlu kılındı. Scroll hatası sıfırlandı.
+ * Çözüm: Hizalamalar kusursuzlaştırıldı, Çevir butonu kibarlaştırıldı.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -81,7 +81,7 @@ html, body {
     text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
 }
 
-/* 4. ANA EKRAN GÖVDESİ (KAYDIRMA KİLİDİ BURADA KIRILDI) */
+/* 4. ANA EKRAN GÖVDESİ */
 main {
     flex: 1; 
     position: relative;
@@ -101,7 +101,7 @@ main {
 .screen.active { 
     display: flex; 
     flex-direction: column; 
-    align-items: center; /* Her şeyi yatayda tam ortaya dizer */
+    align-items: center; 
     width: 100%;
 }
 
@@ -141,15 +141,8 @@ main {
 .shake { animation: shake-anim 0.2s ease-in-out; border-color: #ff4444 !important; }
 @keyframes shake-anim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
-
-/* 🔥 7. CASINO (KAZAN) EKRANI KESİN HİZALAMA 🔥 */
-
-/* Dikeyde ekranı ortalar, ekran sığmazsa kaydırmaya (scroll) izin verir. Scroll hatasını çözen mucize budur. */
-#earn::before, #earn::after {
-    content: "";
-    margin: auto;
-    display: block;
-}
+/* 7. CASINO (KAZAN) EKRANI KESİN HİZALAMA */
+#earn::before, #earn::after { content: ""; margin: auto; display: block; }
 
 .screen-title { width: 100%; text-align: center; }
 
@@ -161,30 +154,29 @@ main {
 #reward-text { display: none; background: rgba(0, 255, 136, 0.15); border: 2px solid #00ff88; color: #00ff88; padding: 10px 35px; border-radius: 18px; font-weight: 900; font-size: 19px; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); box-shadow: 0 0 25px rgba(0, 255, 136, 0.2); animation: rewardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes rewardPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* 🔥 ÜCRETSİZ HAKKA YAZISI ZORLA ORTALANDI 🔥 */
 #daily-timer-box {
     align-self: center !important;
-    margin: 0 auto 20px auto !important;
+    margin: 0 auto 15px auto !important;
     width: fit-content !important;
     display: block !important;
     text-align: center !important;
 }
 
-/* 🔥 ÇEVİR BUTONU ZORLA ORTALANDI 🔥 */
+/* 🔥 ÇEVİR BUTONU İNCELTİLDİ VE KİBARLAŞTIRILDI 🔥 */
 #spin-button {
     align-self: center !important;
     margin: 0 auto !important;
-    width: 90% !important;
-    max-width: 350px !important;
-    min-height: 80px; 
-    border-radius: 22px;
+    width: 75% !important; /* DİKKAT: Yatayda 90%'dan 75%'e düşürüldü */
+    max-width: 280px !important; 
+    min-height: 60px !important; /* DİKKAT: Dikeyde 80px'den 60px'e düşürüldü */
+    border-radius: 18px;
     border: none;
     background: linear-gradient(45deg, #00ff88, #00bd65);
     color: #020617;
     font-weight: 900;
-    font-size: 21px;
+    font-size: 19px; /* Font hafif küçüldü ki butona sığsın */
     text-transform: uppercase;
-    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.35);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
