@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoltPy Casino - Premium</title>
+    <title>VoltPy Casino & SMM - Nihai Sürüm</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -53,10 +53,14 @@
                 <span id="energy-text">500 / 500</span>
                 <span id="energy-regen-timer" style="color: #00ff88;">+1 ⚡ / 60s</span>
             </div>
-            <div style="text-align: center; margin-top: 10px;">
-                <button onclick="window.reklamIzle()" style="background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; color: #fbbf24; padding: 6px 15px; border-radius: 15px; font-size: 11px; font-weight: 800; cursor: pointer;">
-                    📺 REKLAM İZLE (+150 ⚡)
+            
+            <div style="text-align: center; margin-top: 12px;">
+                <button id="turbo-btn" onclick="window.watchAdForTurbo()" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); border: none; color: #000; padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 900; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); cursor: pointer; width: 85%;">
+                    🚀 TURBO +250 ⚡ (SAATLİK: <span id="ad-count">0</span>/20)
                 </button>
+                <div id="turbo-status" style="color: #fbbf24; font-size: 12px; font-weight: 900; margin-top: 10px; display: none; letter-spacing: 2px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">
+                    ⚡ TURBO OTOMASYON AKTİF...
+                </div>
             </div>
         </div>
 
@@ -77,13 +81,13 @@
                     <canvas id="wheel-canvas" width="320" height="320"></canvas>
                 </div>
 
-                <div id="reward-display">
-                    <span id="reward-text"></span>
+                <div id="reward-display" style="min-height: 40px; margin-bottom: 10px;">
+                    <span id="reward-text" style="color: #00ff88; font-weight: 900; font-size: 20px;"></span>
                 </div>
 
                 <div id="daily-timer-box" style="background: rgba(30, 41, 59, 0.6); padding: 8px 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                    <span style="color: #94a3b8; font-size: 12px; font-weight: bold;">GÜNLÜK HAKKA KALAN: </span>
-                    <span id="timer-val" style="color: #00ff88; font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 14px;">00:00:00</span>
+                    <span style="color: #94a3b8; font-size: 11px; font-weight: bold; text-transform: uppercase;">Ücretsiz Hakka Kalan: </span>
+                    <span id="timer-val" style="color: #00ff88; font-family: monospace; font-weight: 900; font-size: 14px;">00:00:00</span>
                 </div>
 
                 <div class="button-group">
