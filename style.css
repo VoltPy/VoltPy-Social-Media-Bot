@@ -1,268 +1,324 @@
-/* --- VOLTPY PREMIUM SMM UI (V2 - AUTOMATIC) --- */
-:root {
-    --bg-color: #0f172a; 
-    --card-bg: #1e293b;
-    --accent-color: #00ff88; 
-    --text-color: #f8fafc;
-    --hint-color: #94a3b8;
-    --gold: #fbbf24;
-    --error: #ef4444;
-}
-
+/* =========================================
+   1. GENEL SIFIRLAMALAR VE TEMEL AYARLAR
+   ========================================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    background-color: #0f172a; /* Koyu lacivert/gri arka plan */
+    color: #f8fafc;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Sayfanın aşağı yukarı kaymasını (bounce) engeller */
+    user-select: none; /* Metinlerin yanlışlıkla seçilmesini engeller */
+    -webkit-tap-highlight-color: transparent; /* Mobilde butona basınca çıkan mavi gölgeyi kapatır */
 }
 
 #app {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
+    width: 100vw;
     position: relative;
 }
 
-/* --- HEADER (KAYIT BUTONU KALDIRILDI) --- */
-.header {
+/* =========================================
+   2. ÜST BİLGİ PANELİ (HEADER)
+   ========================================= */
+.top-bar {
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    background: rgba(15, 23, 42, 0.95);
-    z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(10px); /* Cam efekti */
+    border-bottom: 1px solid #334155;
+    z-index: 100;
 }
 
-.user-info { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-.user-info i { color: var(--accent-color); font-size: 20px; }
+.user-info {
+    font-size: 16px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
 
 .balance-container {
-    background: var(--card-bg);
-    padding: 8px 16px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 26px;
     font-weight: 800;
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    color: #00ff88; /* VoltPy Neon Yeşili */
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
-.balance-container i { color: var(--gold); }
 
-/* --- EKRAN YÖNETİMİ --- */
+/* =========================================
+   3. ENERJİ BARI
+   ========================================= */
+.energy-section {
+    padding: 15px 20px 5px 20px;
+    text-align: center;
+}
+
+.energy-bar-bg {
+    width: 100%;
+    height: 14px;
+    background: #1e293b;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid #334155;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#energy-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #facc15, #eab308, #ca8a04);
+    border-radius: 10px;
+    transition: width 0.1s linear; /* Tıklamalarda akıcı düşüş */
+}
+
+#energy-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #94a3b8;
+}
+
+/* =========================================
+   4. ANA EKRANLAR (SAYFA GEÇİŞLERİ)
+   ========================================= */
+main {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    padding-bottom: 90px; /* Alt menünün arkasında kalmasın diye */
+}
+
 .screen {
     display: none;
-    flex: 1;
     flex-direction: column;
+    align-items: center;
     padding: 20px;
-    overflow-y: auto;
-    width: 100%;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .screen.active {
-    display: flex !important;
-    animation: fadeIn 0.3s ease;
+    display: flex; /* Sadece aktif olan ekranı göster */
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- ANA EKRAN (VOLT BUTONU) --- */
-#home-screen {
-    justify-content: space-around;
-    align-items: center;
-    padding-bottom: 110px;
-}
-
-.coin-wrapper {
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, var(--accent-color) 0%, #008844 100%);
+/* =========================================
+   5. TAPPER EKRANI VE EFEKTLER
+   ========================================= */
+#tap-button {
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, #334155 0%, #0f172a 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+    margin-top: 40px;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
+    transition: transform 0.05s; /* Tıklama tepkimesi çok hızlı olmalı */
     cursor: pointer;
-    transition: transform 0.05s;
+    border: 4px solid #1e293b;
 }
 
-.coin-wrapper:active { transform: scale(0.92); }
-
-.coin-inner {
-    width: 220px;
-    height: 220px;
-    border: 5px dashed rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-.coin-inner i { font-size: 70px; color: white; }
-.coin-inner span { font-size: 24px; font-weight: 900; color: white; margin-top: 5px; }
-
-/* ENERJİ BARI */
-.energy-section { width: 100%; max-width: 350px; }
-.energy-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: bold; }
-.energy-bar-container {
-    height: 12px;
-    background: var(--card-bg);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.energy-bar-fill {
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, var(--accent-color), #00ffcc);
-    transition: width 0.3s ease;
+#tap-button:active {
+    transform: scale(0.94);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 30px rgba(0,0,0,0.8);
 }
 
-/* --- ŞANSLI VOLT (ÇARK TASARIMI) --- */
-.wheel-main-container {
+#tap-button img {
+    width: 140px;
+    pointer-events: none; /* Logoya tıklanıp sürüklenmesini engeller */
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+}
+
+/* Tıklayınca Çıkan +1 Efekti */
+.plus-one {
+    position: absolute;
+    color: #00ff88;
+    font-weight: 900;
+    font-size: 28px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+    animation: moveUpFade 0.8s ease-out forwards;
+    z-index: 2000;
+}
+
+@keyframes moveUpFade {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    50% { transform: translateY(-60px) scale(1.2); opacity: 0.8; }
+    100% { transform: translateY(-120px) scale(1); opacity: 0; }
+}
+
+/* =========================================
+   6. ŞANS ÇARKI (KAZAN EKRANI)
+   ========================================= */
+.wheel-box {
     position: relative;
     width: 300px;
     height: 300px;
-    margin: 20px auto;
-}
-
-.wheel-pointer {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 30px;
-    background: var(--accent-color);
-    clip-path: polygon(50% 100%, 0 0, 100% 0);
-    z-index: 100;
-    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+    margin: 30px auto;
+    overflow: hidden; /* Çark dilimlerinin dışarı taşmasını KESİNLİKLE engeller */
+    border-radius: 50%;
+    border: 6px solid #1e293b;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 .wheel {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    border: 6px solid var(--card-bg);
     position: relative;
-    overflow: hidden;
-    background: var(--card-bg);
-    transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
-    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    border-radius: 50%;
+    transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); /* Yumuşak duruş efekti */
+    background: #0f172a;
 }
 
+/* Çarkın İçindeki Dilimler (JS ile oluşturuluyor ama stili burada) */
 .segment {
     position: absolute;
     width: 50%;
     height: 50%;
     transform-origin: 100% 100%;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 20px;
-    font-size: 10px;
-    font-weight: 800;
-    color: white;
-    text-align: center;
+    left: 0;
+    top: 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Dilimlerin arka planlarını sırayla renklendiriyoruz */
-.segment:nth-child(odd) { background: #1e293b; }
-.segment:nth-child(even) { background: #334155; }
+/* Dilimleri renklendirme */
+.segment:nth-child(odd) { background-color: #334155; }
+.segment:nth-child(even) { background-color: #1e293b; }
 
 .segment span {
-    display: block;
-    width: 40px;
+    position: absolute;
+    left: 100%;
+    top: 100%;
+    transform-origin: 0 0;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    white-space: nowrap;
+    /* JS tarafında dönüş açıları eklenecek */
 }
 
-/* --- ALT MENÜ --- */
+/* Çevir Butonu */
+#spin-button {
+    margin-top: 20px;
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    color: #000;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+    transition: all 0.2s;
+}
+
+#spin-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 5px rgba(0, 255, 136, 0.4);
+}
+
+/* =========================================
+   7. MARKET EKRANI
+   ========================================= */
+#market-list {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+}
+
+.market-item {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #334155;
+    transition: transform 0.2s;
+}
+
+.market-item:active {
+    transform: scale(0.98);
+}
+
+.item-details h3 {
+    font-size: 16px;
+    color: #f8fafc;
+    margin-bottom: 4px;
+}
+
+.buy-btn {
+    background: #00ff88;
+    color: #0f172a;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,255,136,0.2);
+}
+
+/* =========================================
+   8. ALT NAVİGASYON (MENÜ)
+   ========================================= */
 .bottom-nav {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
+    height: 75px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
     display: flex;
     justify-content: space-around;
-    padding: 12px 10px 30px;
-    background: rgba(30, 41, 59, 0.98);
-    backdrop-filter: blur(10px);
-    border-radius: 20px 20px 0 0;
-    z-index: 2000;
+    align-items: center;
+    border-top: 1px solid #334155;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhone çentiği için güvenli alan */
 }
 
 .nav-btn {
     background: none;
     border: none;
-    color: var(--hint-color);
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    font-size: 11px;
-    flex: 1;
+    transition: all 0.3s ease;
 }
 
-.nav-btn i { font-size: 22px; }
-.nav-btn.active { color: var(--accent-color); }
-
-/* BUTONLAR */
-.action-btn {
-    background: var(--accent-color);
-    color: #000;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 15px;
-    font-weight: 900;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+.nav-btn.active {
+    color: #00ff88;
+    transform: translateY(-5px); /* Seçili olan hafif yukarı kalkar */
 }
 
-.action-btn:active { transform: scale(0.95); }
-
-/* MARKET LİSTESİ */
-.market-item {
-    background: var(--card-bg);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid rgba(255,255,255,0.05);
+.nav-btn::after {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.3s ease;
 }
 
-.plus-one {
-    position: fixed;
-    color: var(--accent-color);
-    font-size: 28px;
-    font-weight: 900;
-    pointer-events: none;
-    z-index: 9999;
-    animation: floatUp 0.8s ease-out forwards;
-}
-
-@keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-120px); }
+.nav-btn.active::after {
+    background: #00ff88; /* Seçili menünün altında yeşil nokta çıkar */
 }
