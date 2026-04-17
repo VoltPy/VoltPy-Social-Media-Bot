@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V17 NİHAİ SÜRÜM
+ * VOLTPY TAPPER & CASINO - V18 (FINAL STABLE)
  * Geliştirici: Berke (VoltPy)
- * Güncelleme: Turbo Yazısı Fix, Neon Orange Logic, Rapid-Fire Multi-Touch
+ * Çözüm: Otomasyon yazısı (turbo-status) senkronizasyonu %100 düzeltildi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. TELEGRAM VE KULLANICI PARAMETRELERİ
+// 2. TELEGRAM VE PARAMETRELER
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
@@ -186,7 +186,7 @@ if (spinBtnEl) {
     };
 }
 
-// 8. 🚀 REKLAM VE TURBO (FIXED)
+// 8. 🚀 REKLAM VE TURBO MOTORU (KESİN ÇÖZÜM)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
     if (confirm("+250 Enerji ister misin?")) {
@@ -197,17 +197,19 @@ window.watchAdForEnergy = () => {
 
 window.startTurboMode = () => {
     if (isAutoClicking || adCount >= 20 || currentEnergy < 100) return alert("Limit dolu veya enerji yetersiz!");
-    adCount++; isAutoClicking = true;
-    document.body.classList.add('turbo-active');
+    adCount++; 
+    isAutoClicking = true;
     
-    // YAZIYI GÖSTER (Neon Turuncu)
+    document.body.classList.add('turbo-active');
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'block';
 
     autoClickInterval = setInterval(() => {
         if (currentEnergy > 0) {
-            balance++; currentEnergy--; updateUI();
-            createPlusOne(window.innerWidth/2, window.innerHeight/2);
+            balance++; 
+            currentEnergy--; 
+            updateUI();
+            createPlusOne(window.innerWidth / 2, window.innerHeight / 2);
             if (currentEnergy % 25 === 0) bulutaYaz();
         } else { 
             stopAutoClicker(); 
@@ -216,15 +218,19 @@ window.startTurboMode = () => {
 };
 
 function stopAutoClicker() {
-    clearInterval(autoClickInterval);
+    if (autoClickInterval) {
+        clearInterval(autoClickInterval);
+        autoClickInterval = null;
+    }
     isAutoClicking = false;
-    document.body.classList.remove('turbo-active');
     
-    // YAZIYI GİZLE (Kesin Çözüm)
+    // UI TEMİZLİĞİ (ZORUNLU)
+    document.body.classList.remove('turbo-active');
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
     
-    updateUI(); bulutaYaz();
+    updateUI(); 
+    bulutaYaz();
 }
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
@@ -243,18 +249,25 @@ function updateUI() {
 
     const energySection = document.querySelector('.energy-section');
     const energyWarning = document.getElementById('energy-warning');
+    const statusText = document.getElementById('turbo-status');
 
     if (currentEnergy <= 0) {
-        energySection.classList.add('energy-empty');
+        if (energySection) energySection.classList.add('energy-empty');
         if (energyWarning) energyWarning.style.display = 'block';
-        if (isAutoClicking) stopAutoClicker(); // Otomasyonu güvenli kapat
+        
+        // Enerji bittiğinde otomasyonu kesin kapat ve yazıyı gizle
+        if (isAutoClicking) {
+            stopAutoClicker();
+        } else if (statusText) {
+            statusText.style.display = 'none';
+        }
     } else {
-        energySection.classList.remove('energy-empty');
+        if (energySection) energySection.classList.remove('energy-empty');
         if (energyWarning) energyWarning.style.display = 'none';
     }
 }
 
-// 10. NAVİGASYON VE ÇARK ÇİZİMİ
+// 10. NAVİGASYON VE ÇEVRESEL AYARLAR
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         if (isAutoClicking) return;
@@ -280,5 +293,4 @@ function drawWheel() {
     }
 }
 
-// BAŞLAT
 drawWheel(); updateUI();
