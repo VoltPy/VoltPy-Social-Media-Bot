@@ -1,27 +1,27 @@
 /**
- * VOLTPY SMM BOT - MAIN.JS (NİHAİ REVİZE)
+ * VOLTPY SMM BOT - MAIN.JS (FULL SENKRONİZE SÜRÜM)
  * Geliştirici: Berke (VoltPy)
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 1. FIREBASE YAPILANDIRMASI
 const firebaseConfig = {
-  apiKey: "AIzaSyCumZ1RBi32yLpwvDFkb1Y7RbUPyZAOwYQ",
-  authDomain: "voltpy1.firebaseapp.com",
-  databaseURL: "https://voltpy1-default-rtdb.firebaseio.com",
-  projectId: "voltpy1",
-  storageBucket: "voltpy1.firebasestorage.app",
-  messagingSenderId: "1027898071391",
-  appId: "1:1027898071391:web:95909c9c9fe3dc54103eea",
-  measurementId: "G-X6250NC6PW"
+    apiKey: "AIzaSyCumZ1RBi32yLpwvDFkb1Y7RbUPyZAOwYQ",
+    authDomain: "voltpy1.firebaseapp.com",
+    databaseURL: "https://voltpy1-default-rtdb.firebaseio.com",
+    projectId: "voltpy1",
+    storageBucket: "voltpy1.firebasestorage.app",
+    messagingSenderId: "1027898071391",
+    appId: "1:1027898071391:web:95909c9c9fe3dc54103eea",
+    measurementId: "G-X6250NC6PW"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. GLOBAL DEĞİŞKENLER VE TELEGRAM GÜVENLİĞİ
+// 2. TELEGRAM & KULLANICI AYARLARI
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
@@ -29,24 +29,35 @@ const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('uid'); 
 const backupName = urlParams.get('name') || "Oyuncu";
 
-// Erişim Engeli (Telegram dışı girişler için)
+// GÜVENLİK DUVARI
 if (!userId || tg.platform === "unknown" || tg.platform === undefined) {
-    document.body.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #0f172a; color: white; text-align: center; font-family: sans-serif;">
-            <h1 style="color: #ff4444;">🛑 ERİŞİM REDDEDİLDİ</h1>
-            <p>Lütfen Telegram botu üzerinden giriş yapın.</p>
-        </div>
-    `;
+    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:white;text-align:center;padding:20px;"><div><h1>🛑 ERİŞİM ENGELLENDİ</h1><p>Lütfen Telegram botu üzerinden giriş yapın.</p></div></div>`;
     throw new Error("Sadece Telegram girişi.");
 }
 
-// Oyun Değerleri
+// Global Değişkenler (Firebase'den gelecek değerlerle güncellenecek)
 let balance = parseInt(urlParams.get('bal')) || 0;
 let currentEnergy = parseInt(urlParams.get('en')) || 500;
 const maxEnergy = 500;
 let isSpinning = false;
 
-// 3. ANLIK BULUT KAYIT FONKSİYONU
+// 3. 📡 CANLI DİNLEME (REAL-TIME LISTENER)
+// Bu kısım sayesinde bulutta veri değiştiği an ekranın güncellenir.
+const userRef = ref(db, 'users/' + userId);
+onValue(userRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        // Eğer kullanıcı şu an bir işlem (çark çevirme vs) yapmıyorsa veriyi eşitle
+        if (!isSpinning) {
+            balance = data.balance || 0;
+            currentEnergy = data.energy || 0;
+            updateUI();
+            console.log("🔄 Bulut ile senkronize edildi!");
+        }
+    }
+});
+
+// 4. ✍️ BULUTA YAZMA FONKSİYONU
 function bulutaYaz() {
     if (!userId) return;
     set(ref(db, 'users/' + userId), {
@@ -54,19 +65,21 @@ function bulutaYaz() {
         energy: currentEnergy,
         username: backupName,
         lastUpdate: Date.now()
-    }).then(() => {
-        console.log("📡 Firebase: Veri başarıyla işlendi.");
-    }).catch(err => console.error("❌ Firebase Hatası:", err));
+    }).catch(err => console.error("❌ Kayıt Hatası:", err));
 }
 
-// 4. ARAYÜZ GÜNCELLEME
+// 5. ARAYÜZ GÜNCELLEME
 function updateUI() {
-    document.getElementById('balance').textContent = balance;
-    document.getElementById('energy-text').textContent = `${currentEnergy} / ${maxEnergy}`;
-    document.getElementById('energy-bar').style.width = `${(currentEnergy / maxEnergy) * 100}%`;
+    const b = document.getElementById('balance');
+    const et = document.getElementById('energy-text');
+    const eb = document.getElementById('energy-bar');
+    
+    if (b) b.textContent = balance;
+    if (et) et.textContent = `${currentEnergy} / ${maxEnergy}`;
+    if (eb) eb.style.width = `${(currentEnergy / maxEnergy) * 100}%`;
 }
 
-// 5. TAPPER (TIKLAMA) MANTIĞI
+// 6. TAPPER (TIKLAMA) SİSTEMİ
 const tapBtn = document.getElementById('tap-button');
 if (tapBtn) {
     tapBtn.addEventListener('pointerdown', (e) => {
@@ -74,11 +87,9 @@ if (tapBtn) {
             balance++;
             currentEnergy--;
             updateUI();
-            
-            // HER TIKTA ANINDA KAYIT
-            bulutaYaz();
+            bulutaYaz(); // Anlık Kayıt
 
-            // Efekt (+1)
+            // +1 Efekti
             const p = document.createElement('div');
             p.innerText = '+1'; p.className = 'plus-one';
             p.style.left = `${e.clientX}px`; p.style.top = `${e.clientY}px`;
@@ -86,11 +97,13 @@ if (tapBtn) {
             setTimeout(() => p.remove(), 800);
 
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        } else {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         }
     });
 }
 
-// 6. ŞANS ÇARKI (CANVAS)
+// 7. ŞANS ÇARKI (CANVAS)
 const rewards = [
     { text: "BOŞ", type: "lose", val: 0 }, { text: "20 💰", type: "coin", val: 20 },
     { text: "50 💰", type: "coin", val: 50 }, { text: "100 💰", type: "coin", val: 100 },
@@ -134,11 +147,11 @@ if (spinBtn) {
         balance -= 100;
         isSpinning = true;
         updateUI();
-        bulutaYaz(); // Harcamayı anında yaz
+        bulutaYaz();
 
         const prizeIdx = Math.floor(Math.random() * rewards.length);
         const prize = rewards[prizeIdx];
-        const targetRotation = currentRotation + 1800 + (360 - (prizeIdx * (360 / rewards.length)));
+        const targetRotation = currentRotation + 1440 + (360 - (prizeIdx * (360 / rewards.length)));
         currentRotation = targetRotation;
 
         const canvas = document.getElementById('wheel-canvas');
@@ -151,13 +164,27 @@ if (spinBtn) {
             if (prize.type === "energy") currentEnergy = maxEnergy;
             if (prize.type === "free") balance += 100;
             updateUI();
-            bulutaYaz(); // Ödülü anında yaz
-            alert(`🎁 Sonuç: ${prize.text}`);
+            bulutaYaz();
+            alert(`🎁 Kazancın: ${prize.text}`);
         }, 4000);
     };
 }
 
-// 7. NAVİGASYON VE MARKET
+// 8. MARKET & GLOBAL FONKSİYONLAR
+window.buyItem = function(name, price) {
+    if (balance >= price) {
+        if (confirm(`${name} satın alınsın mı?`)) {
+            balance -= price;
+            updateUI();
+            bulutaYaz();
+            alert("✅ Sipariş başarılı!");
+        }
+    } else {
+        alert("❌ Bakiye yetersiz!");
+    }
+};
+
+// 9. BAŞLATMA VE NAVİGASYON
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         const target = btn.getAttribute('data-target');
@@ -168,38 +195,28 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     };
 });
 
-// Ürün Alma Fonksiyonu (Global Pencereye Bağladık)
-window.buyItem = function(name, price) {
-    if (balance >= price) {
-        if (confirm(`${name} satın alınsın mı?`)) {
-            balance -= price;
-            updateUI();
-            bulutaYaz();
-            alert("✅ İşlem Başarılı!");
-        }
-    } else { alert("❌ Yetersiz bakiye!"); }
-};
-
-// 8. BAŞLAT
 function init() {
-    document.getElementById('username').textContent = tg.initDataUnsafe?.user?.first_name || backupName;
-    updateUI();
-    drawWheel();
+    const userDisplay = document.getElementById('username');
+    if (userDisplay) userDisplay.textContent = tg.initDataUnsafe?.user?.first_name || backupName;
     
-    // Market Ürünlerini Yükle
-    const marketList = document.getElementById('market-list');
-    if (marketList) {
+    // Market Ürünlerini Listele
+    const mList = document.getElementById('market-list');
+    if (mList) {
         const items = [
-            { name: "100 Instagram Takipçi", price: 5000 },
-            { name: "500 Instagram Beğeni", price: 3000 }
+            { n: "100 Instagram Takipçi", p: 5000 },
+            { n: "500 Instagram Beğeni", p: 3000 },
+            { n: "100 TikTok Takipçi", p: 2500 }
         ];
-        marketList.innerHTML = items.map(i => `
+        mList.innerHTML = items.map(i => `
             <div class="market-item">
-                <span>${i.name}</span>
-                <button class="buy-btn" onclick="buyItem('${i.name}', ${i.price})">${i.price} 💰</button>
+                <span>${i.n}</span>
+                <button class="buy-btn" onclick="buyItem('${i.n}', ${i.p})">${i.p} 💰</button>
             </div>
         `).join('');
     }
+    
+    updateUI();
+    drawWheel();
 }
 
 init();
