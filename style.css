@@ -1,6 +1,6 @@
-/* VOLTPY TAPPER & CASINO - V17 NİHAİ CSS 
+/* VOLTPY TAPPER & CASINO - V18 NİHAİ CSS 
     Geliştirici: Berke (VoltPy)
-    Özellikler: Neon Turuncu Turbo, Mekanik Tapper, Gelişmiş Boşluklar, Kırmızı Modal
+    Düzeltme: Otomasyon yazısı (Turbo Status) senkronu ve Neon Turuncu tasarımı.
 */
 
 /* 1. SİSTEM VE MOBİL RESET */
@@ -67,6 +67,7 @@ html, body {
     transition: width 0.3s ease-out;
 }
 
+/* Enerji bittiğinde barın pulse efekti */
 .energy-empty #energy-bar {
     background: linear-gradient(90deg, #ff4444, #991b1b) !important;
     animation: energy-pulse 1s infinite;
@@ -86,7 +87,7 @@ html, body {
     color: #94a3b8;
 }
 
-/* 4. ENERJİ TÜKENDİ UYARI METNİ */
+/* 4. ENERJİ TÜKENDİ UYARI METNİ (KIRMIZI NEON) */
 #energy-warning {
     display: none;
     background: rgba(255, 68, 68, 0.08);
@@ -102,23 +103,23 @@ html, body {
     text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
 }
 
-/* 5. TURBO DURUMU (NEON TURUNCU VE MESAFELİ) */
+/* 5. TURBO DURUMU (NEON TURUNCU & ARALIKLI) */
 #turbo-status {
-    display: none;
+    display: none; /* JS ile açılır/kapanır */
     color: #ff8c00; /* Neon Turuncu */
     font-size: 13px;
     font-weight: 900;
-    margin: 20px 0; /* İSTEK: Araya mesafe koyuldu */
+    margin: 25px 0; /* İSTEK: Araya ferahlık katmak için mesafe */
     text-align: center;
     letter-spacing: 2px;
     text-transform: uppercase;
     text-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
-    animation: orange-pulse 1.5s infinite;
+    animation: orange-pulse 1.5s infinite ease-in-out;
 }
 
 @keyframes orange-pulse {
     0%, 100% { opacity: 0.7; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
+    50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 25px #ff8c00; }
 }
 
 /* 6. TAPPER BUTONU - MEKANİK & SABİT */
@@ -146,7 +147,7 @@ html, body {
     box-shadow: 0 0 60px rgba(0, 255, 136, 0.8);
 }
 
-/* Sarsılma (Hata) */
+/* Sarsılma (Hata/Enerji Bitiş) */
 .shake {
     animation: shake-anim 0.2s ease-in-out;
     border-color: #ff4444 !important;
@@ -248,7 +249,7 @@ main { flex: 1; position: relative; overflow: hidden; }
 }
 .screen.active { display: flex; flex-direction: column; align-items: center; }
 
-/* Çark Düzeltmesi */
+/* Casino Ekranı Düzenlemeleri */
 .wheel-outer { position: relative; width: 280px; height: 280px; margin: 10px auto; }
 #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #1e293b; }
 .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 50; }
