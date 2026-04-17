@@ -1,13 +1,12 @@
 /**
- * VOLTPY SMM BOT - MAIN.JS (TAM SÜRÜM - RENKLİ ÇARK & SÜREKLİ KAYIT)
+ * VOLTPY SMM BOT - MAIN.JS (CANVAS ÇARK & BULUT SİSTEMİ)
  * Geliştirici: Berke (VoltPy)
  */
 
-// 1. FIREBASE İÇE AKTARMA (MODÜL)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 2. FIREBASE YAPILANDIRMASI (voltpy1 Projesi)
+// 1. FIREBASE YAPILANDIRMASI
 const firebaseConfig = {
   apiKey: "AIzaSyCumZ1RBi32yLpwvDFkb1Y7RbUPyZAOwYQ",
   authDomain: "voltpy1.firebaseapp.com",
@@ -22,12 +21,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 3. TELEGRAM VE URL PARAMETRELERİ
+// 2. TELEGRAM & KULLANICI VERİLERİ
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
-if (tg.ready) tg.ready();
 
-// Python botundan gelen kimlik verilerini URL'den çekiyoruz
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('uid'); 
 const backupName = urlParams.get('name') || "Oyuncu";
@@ -36,13 +33,14 @@ let balance = parseInt(urlParams.get('bal')) || 0;
 let currentEnergy = parseInt(urlParams.get('en')) || 500;
 const maxEnergy = 500;
 let isSpinning = false;
-
-// KONTROL NOKTASI (Sistemi yormamak için sadece değişince kaydeder)
 let sonKaydedilenBakiye = balance; 
 
-// 4. BULUTA SESSİZ KAYIT FONKSİYONU
+// 3. BULUTA SESSİZ KAYIT SİSTEMİ
 function bulutaYaz() {
-    if (!userId) return; // Kullanıcı ID yoksa (bottan girilmediyse) kaydetme
+    if (!userId) {
+        console.warn("⚠️ Telegram UserID yok! Veriler kaydedilmiyor.");
+        return;
+    }
     
     set(ref(db, 'users/' + userId), {
         balance: balance,
@@ -51,25 +49,20 @@ function bulutaYaz() {
         lastUpdate: Date.now()
     }).then(() => {
         sonKaydedilenBakiye = balance;
-        console.log(`✅ VoltPy Cloud: Kayıt Başarılı -> ${balance} 💰`);
-    }).catch(err => console.error("Kayıt Hatası:", err));
+        console.log(`✅ Bulut Güncellendi: ${balance} 💰`);
+    }).catch(err => console.error("❌ Kayıt Hatası:", err));
 }
 
-// ⏱️ OTOMATİK SENKRONİZASYON (HER 3 SANİYEDE BİR)
+// ⏱️ HER 3 SANİYEDE BİR DEĞİŞİKLİK VARSA KAYDET
 setInterval(() => {
-    if (balance !== sonKaydedilenBakiye) {
-        bulutaYaz();
-    }
+    if (balance !== sonKaydedilenBakiye) bulutaYaz();
 }, 3000);
 
-// 🔒 KULLANICI ÇIKARKEN / UYGULAMAYI KAPATIRKEN SON KAYIT
 document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === 'hidden' && balance !== sonKaydedilenBakiye) {
-        bulutaYaz();
-    }
+    if (document.visibilityState === 'hidden' && balance !== sonKaydedilenBakiye) bulutaYaz();
 });
 
-// 5. BAŞLANGIÇ (INIT) VE UI GÜNCELLEME
+// 4. UI GÜNCELLEME
 function updateUI() {
     const balEl = document.getElementById('balance');
     const enText = document.getElementById('energy-text');
@@ -80,16 +73,7 @@ function updateUI() {
     if (enBar) enBar.style.width = `${(currentEnergy / maxEnergy) * 100}%`;
 }
 
-function init() {
-    const userEl = document.getElementById('username');
-    if (userEl) userEl.textContent = tg.initDataUnsafe?.user?.first_name || backupName;
-    
-    updateUI();
-    createWheel();
-    loadMarket();
-}
-
-// 6. TAPPER (TIKLAMA) SİSTEMİ VE EFEKTLER
+// 5. TAPPER (TIKLAMA) SİSTEMİ
 const tapButton = document.getElementById('tap-button');
 if (tapButton) {
     tapButton.addEventListener('pointerdown', (e) => {
@@ -98,26 +82,22 @@ if (tapButton) {
             currentEnergy--;
             updateUI();
 
-            // +1 Efektini Yaratma
             const plusOne = document.createElement('div');
             plusOne.innerText = '+1';
             plusOne.className = 'plus-one';
-            
             const x = e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2;
             const y = e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2;
             plusOne.style.left = `${x}px`;
             plusOne.style.top = `${y}px`;
-            
             document.body.appendChild(plusOne);
             setTimeout(() => plusOne.remove(), 800);
 
-            // Telefonda titreme hissi
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
     });
 }
 
-// 7. ŞANS ÇARKI MANTIĞI VE TASARIMI
+// 6. CANVAS ÇARK SİSTEMİ (JİLET GİBİ NET VE KAYMAZ)
 const rewards = [
     { text: "BOŞ", type: "lose", val: 0 },
     { text: "20 💰", type: "coin", val: 20 },
@@ -131,47 +111,42 @@ const rewards = [
     { text: "TEKRAR", type: "free", val: 100 }
 ];
 
-function createWheel() {
-    const wheel = document.getElementById('lucky-wheel');
-    if (!wheel) return;
-    wheel.innerHTML = ''; // Eski bozuk çizimleri temizle
-    const deg = 360 / rewards.length; 
+let currentRotation = 0; // Çarkın mevcut açısını hafızada tutarız
 
-    rewards.forEach((r, i) => {
-        const seg = document.createElement('div');
-        seg.className = 'segment';
-        
-        // CSS OLMADAN JS İLE DİLİM TASARIMI
-        seg.style.position = 'absolute';
-        seg.style.width = '50%';
-        seg.style.height = '50%';
-        seg.style.transformOrigin = '100% 100%';
-        seg.style.left = '0';
-        seg.style.top = '0';
-        
-        // Renkler: Volt Yeşili ve Koyu Lacivert/Gri değişimi
-        seg.style.backgroundColor = i % 2 === 0 ? '#00ff88' : '#1e293b';
-        seg.style.border = '1px solid rgba(0, 0, 0, 0.2)';
-        seg.style.transform = `rotate(${i * deg}deg) skewY(${90 - deg}deg)`;
+function drawWheel() {
+    const canvas = document.getElementById('wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const radius = canvas.width / 2;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const arc = (2 * Math.PI) / rewards.length;
 
-        const span = document.createElement('span');
-        span.innerText = r.text;
-        
-        // YAZI DÜZENİ
-        span.style.position = 'absolute';
-        span.style.left = '100%';
-        span.style.top = '100%';
-        span.style.transformOrigin = '0 0';
-        span.style.fontSize = '12px';
-        span.style.fontWeight = '900';
-        span.style.color = i % 2 === 0 ? '#000000' : '#ffffff'; 
-        
-        // Yazıyı dilimin ortasına çekme
-        span.style.transform = `skewY(-${90 - deg}deg) rotate(${deg / 2}deg) translate(15px, -8px)`;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        seg.appendChild(span);
-        wheel.appendChild(seg);
-    });
+    for (let i = 0; i < rewards.length; i++) {
+        const angle = i * arc - (Math.PI / 2) - (arc / 2); // 0. index tam tepeye gelsin diye
+        
+        // Dilimi Çiz
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arc);
+        ctx.fillStyle = i % 2 === 0 ? '#00ff88' : '#1e293b'; // Volt Yeşili & Lacivert
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.2)"; // İnce siyah çizgi
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Yazıyı Ekle
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = i % 2 === 0 ? '#000000' : '#ffffff'; // Yeşile siyah, Laciverte beyaz
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(rewards[i].text, radius - 20, 5); // Yazıyı uca yakın yerleştir
+        ctx.restore();
+    }
 }
 
 const spinBtn = document.getElementById('spin-button');
@@ -187,17 +162,27 @@ if (spinBtn) {
         balance -= 100; 
         isSpinning = true;
         updateUI();
-        bulutaYaz(); // Çevirme parası kesildi, hemen kaydet
+        bulutaYaz();
 
-        const rotation = Math.floor(Math.random() * 3600) + 1800; 
-        const wheel = document.getElementById('lucky-wheel');
-        wheel.style.transform = `rotate(${rotation}deg)`;
+        // 1. Ödülü önceden belirliyoruz
+        const prizeIdx = Math.floor(Math.random() * rewards.length);
+        const prize = rewards[prizeIdx];
 
+        // 2. Çarkın o ödülde durması için gereken açıyı hesaplıyoruz
+        const segmentAngle = 360 / rewards.length;
+        // Tam tur atması için (5 tur = 1800 derece) + hedefe ulaşması için gereken açı
+        const targetRotation = currentRotation + 1800 + (360 - (prizeIdx * segmentAngle));
+        
+        currentRotation = targetRotation;
+
+        // 3. Canvas'ı CSS ile döndürüyoruz (En akıcı yöntem)
+        const canvas = document.getElementById('wheel-canvas');
+        canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0, 0.1, 1)';
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        // 4. Dönüş bitince ödülü ver
         setTimeout(() => {
             isSpinning = false;
-            const actualDeg = rotation % 360;
-            const prizeIdx = Math.floor((360 - actualDeg) / (360 / rewards.length)) % rewards.length;
-            const prize = rewards[prizeIdx];
 
             if (prize.type === "coin") balance += prize.val;
             if (prize.type === "energy") currentEnergy = maxEnergy; 
@@ -205,13 +190,12 @@ if (spinBtn) {
 
             updateUI();
             alert(`🎁 Sonuç: ${prize.text}`);
-            
-            bulutaYaz(); // Ödül geldi, hemen kaydet
+            bulutaYaz();
         }, 4000); 
     };
 }
 
-// 8. SMM MARKET EKRANI
+// 7. SMM MARKET SİSTEMİ
 function loadMarket() {
     const marketList = document.getElementById('market-list');
     if (!marketList) return;
@@ -224,11 +208,11 @@ function loadMarket() {
     ];
 
     marketList.innerHTML = items.map(i => `
-        <div class="market-item" style="background: #1e293b; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;">
+        <div class="market-item">
             <div class="item-details">
-                <h3 style="margin: 0; font-size: 16px;">${i.name}</h3>
+                <h3 style="margin: 0; font-size: 15px;">${i.name}</h3>
             </div>
-            <button class="buy-btn" onclick="buyItem('${i.name}', ${i.price})" style="background: #00ff88; color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; box-shadow: 0 0 5px rgba(0,255,136,0.3);">${i.price} 💰</button>
+            <button class="buy-btn" onclick="buyItem('${i.name}', ${i.price})">${i.price} 💰</button>
         </div>
     `).join('');
 }
@@ -238,15 +222,15 @@ window.buyItem = (name, price) => {
         if (confirm(`${name} hizmetini başlatmak istiyor musun?`)) {
             balance -= price;
             updateUI();
-            bulutaYaz(); // Satın alma sonrası ANINDA kaydet
-            alert("✅ Sipariş başarıyla alındı! Bakiyen bulutta güncellendi.");
+            bulutaYaz(); 
+            alert("✅ Sipariş alındı! Bakiyen güncellendi.");
         }
     } else {
         alert("❌ Bakiye yetersiz!");
     }
 };
 
-// 9. ALT MENÜ NAVİGASYONU
+// 8. MENÜ NAVİGASYONU
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -256,12 +240,18 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(targetId).classList.add('active');
         
-        // Sayfa geçişinde kaydet
-        if (balance !== sonKaydedilenBakiye) {
-            bulutaYaz();
-        }
+        if (balance !== sonKaydedilenBakiye) bulutaYaz();
     };
 });
 
-// MOTORU ÇALIŞTIR
+// 9. MOTORU ÇALIŞTIR
+function init() {
+    const userEl = document.getElementById('username');
+    if (userEl) userEl.textContent = tg.initDataUnsafe?.user?.first_name || backupName;
+    
+    updateUI();
+    drawWheel(); // Çarkı çiz
+    loadMarket();
+}
+
 init();
