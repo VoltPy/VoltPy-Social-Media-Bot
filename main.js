@@ -1,5 +1,5 @@
 /**
- * VOLTPY SMM BOT - NİHAİ ANA DOSYA (V3 - HATA DÜZELTİLMİŞ)
+ * VOLTPY SMM BOT - NİHAİ ANA DOSYA (V4 - PROFESYONEL CASINO SÜRÜMÜ)
  * Geliştirici: Berke (VoltPy)
  */
 
@@ -35,39 +35,37 @@ let currentEnergy = 0;
 const maxEnergy = 500;
 let isSpinning = false;
 let firstDataLoaded = false;
+let currentRotation = 0;
 
 // 3. 📡 CANLI VERİ DİNLEME VE PERDE KONTROLÜ
 if (userId) {
     const userRef = ref(db, 'users/' + userId);
 
-    // ACİL DURUM ÇIKIŞI: Eğer Firebase 5 saniye içinde cevap vermezse perdeyi zorla kaldır
+    // Veri gelse de gelmese de 4 saniye sonra perdeyi kaldır (Donma koruması)
     setTimeout(() => {
         if (!firstDataLoaded) {
-            console.warn("⚠️ Firebase yavaş yanıt verdi, acil durum açılışı yapılıyor.");
             removeOverlay();
             firstDataLoaded = true;
         }
-    }, 5000);
+    }, 4000);
 
     onValue(userRef, (snapshot) => {
         const data = snapshot.val();
         
         if (data) {
-            // Mevcut kullanıcı verileri
             if (!isSpinning) {
                 balance = data.balance || 0;
                 currentEnergy = data.energy || 0;
                 updateUI();
             }
         } else {
-            // YENİ KULLANICI: Firebase'de kaydı yoksa varsayılanlarla başlat
+            // YENİ KULLANICI: İlk giriş hediyesi 100 coin
             balance = 100;
             currentEnergy = 500;
             updateUI();
-            bulutaYaz(); // İlk kaydı oluştur
+            bulutaYaz();
         }
 
-        // Veri (boş veya dolu) ulaştığı anda perdeyi kaldır
         if (!firstDataLoaded) {
             removeOverlay();
             firstDataLoaded = true;
@@ -83,55 +81,18 @@ function removeOverlay() {
     }
 }
 
-// 4. ✍️ BULUTA YAZMA
-function bulutaYaz() {
-    if (!userId) return;
-    set(ref(db, 'users/' + userId), {
-        balance: balance,
-        energy: currentEnergy,
-        username: backupName,
-        lastUpdate: Date.now()
-    }).catch(err => console.error("❌ Kayıt Hatası:", err));
-}
-
-// 5. ARAYÜZ GÜNCELLEME
-function updateUI() {
-    document.getElementById('balance').textContent = balance;
-    document.getElementById('energy-text').textContent = `${currentEnergy} / ${maxEnergy}`;
-    document.getElementById('energy-bar').style.width = `${(currentEnergy / maxEnergy) * 100}%`;
-}
-
-// 6. TAPPER (TIKLAMA)
-const tapBtn = document.getElementById('tap-button');
-if (tapBtn) {
-    tapBtn.addEventListener('pointerdown', (e) => {
-        if (currentEnergy > 0) {
-            balance++;
-            currentEnergy--;
-            updateUI();
-            bulutaYaz();
-
-            const p = document.createElement('div');
-            p.innerText = '+1'; p.className = 'plus-one';
-            p.style.left = `${e.clientX}px`; p.style.top = `${e.clientY}px`;
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 800);
-
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-        }
-    });
-}
-
-// 7. 🎲 KUMARBAZ ÇARKI (Ağırlıklı Olasılık)
+// 4. 🎰 KUMARBAZ ÖDÜL TABLOSU (Berke'nin Özel Oranları)
 const rewards = [
-    { text: "BOŞ", type: "lose", val: 0, weight: 45 },      // %45 Kayıp
-    { text: "5 💰", type: "coin", val: 5, weight: 20 },     // %20
-    { text: "20 💰", type: "coin", val: 20, weight: 15 },   // %15
-    { text: "TEKRAR", type: "free", val: 100, weight: 10 }, // %10
-    { text: "50 💰", type: "coin", val: 50, weight: 5 },    // %5
-    { text: "100 💰", type: "coin", val: 100, weight: 3 },  // %3
-    { text: "1000 💰", type: "coin", val: 1000, weight: 1 },// %1 (BÜYÜK ÖDÜL)
-    { text: "FULL EN", type: "energy", val: 500, weight: 1 } // %1
+    { text: "5000 💰", val: 5000, type: "coin", weight: 1 },   // %0.1
+    { text: "1000 💰", val: 1000, type: "coin", weight: 4 },   // %0.4
+    { text: "500 💰", val: 500, type: "coin", weight: 15 },    // %1.5
+    { text: "250 💰", val: 250, type: "coin", weight: 40 },    // %4
+    { text: "110 💰", val: 110, type: "coin", weight: 100 },   // %10
+    { text: "100 💰", val: 100, type: "free", weight: 140 },   // %14 (Cashback)
+    { text: "75 💰", val: 75, type: "coin", weight: 200 },     // %20
+    { text: "50 💰", val: 50, type: "coin", weight: 250 },     // %25
+    { text: "10 💰", val: 10, type: "coin", weight: 200 },     // %20
+    { text: "⚡ FULL", val: 500, type: "energy", weight: 40 } // %4
 ];
 
 function getWeightedPrize() {
@@ -144,8 +105,9 @@ function getWeightedPrize() {
     return 0;
 }
 
-let currentRotation = 0;
+// 5. 🎡 ÇARK DÖNDÜRME (Rastgele Duruşlu)
 const spinBtn = document.getElementById('spin-button');
+const rewardText = document.getElementById('reward-text');
 
 if (spinBtn) {
     spinBtn.onclick = () => {
@@ -153,33 +115,85 @@ if (spinBtn) {
         
         balance -= 100;
         isSpinning = true;
+        rewardText.style.display = 'none'; // Eski ödülü temizle
         updateUI();
         bulutaYaz();
 
         const prizeIdx = getWeightedPrize();
         const prize = rewards[prizeIdx];
         
+        // --- RANDOM OFFSET (Dilim içi rastgele duruş) ---
         const segmentAngle = 360 / rewards.length;
-        const targetAngle = (360 - (prizeIdx * segmentAngle)); 
-        const totalSpin = currentRotation + 1800 + targetAngle; 
+        const randomInSegment = (Math.random() * (segmentAngle * 0.7)) + (segmentAngle * 0.15);
+        
+        const targetAngle = (360 - (prizeIdx * segmentAngle)) - randomInSegment; 
+        const totalSpin = currentRotation + 2160 + targetAngle; // 6 tam tur
         
         currentRotation = totalSpin;
-
         const canvas = document.getElementById('wheel-canvas');
-        canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.2, 1)';
+        canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
         canvas.style.transform = `rotate(${currentRotation}deg)`;
 
         setTimeout(() => {
             isSpinning = false;
-            if (prize.type === "coin") balance += prize.val;
-            if (prize.type === "energy") currentEnergy = maxEnergy;
-            if (prize.type === "free") balance += 100;
             
+            if (prize.type === "energy") {
+                currentEnergy = 500;
+            } else {
+                balance += prize.val;
+            }
+
             updateUI();
             bulutaYaz();
-            alert(prize.type === "lose" ? "😔 Şansına küs!" : `🎉 TEBRİKLER! ${prize.text}`);
+            
+            // Ödülü ekrana yaz
+            rewardText.textContent = `KAZANÇ: ${prize.text}`;
+            rewardText.style.display = 'block';
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 5000);
     };
+}
+
+// 6. ✍️ BULUT KAYDI VE UI
+function bulutaYaz() {
+    if (!userId) return;
+    set(ref(db, 'users/' + userId), {
+        balance: balance, energy: currentEnergy, username: backupName, lastUpdate: Date.now()
+    }).catch(err => console.error("Firebase Hatası:", err));
+}
+
+function updateUI() {
+    const balEl = document.getElementById('balance');
+    const enText = document.getElementById('energy-text');
+    const enBar = document.getElementById('energy-bar');
+    
+    if (balEl) balEl.textContent = balance;
+    if (enText) enText.textContent = `${currentEnergy} / 500`;
+    if (enBar) enBar.style.width = `${(currentEnergy / 500) * 100}%`;
+}
+
+// 7. TAPPER (TIKLAMA)
+const tapBtn = document.getElementById('tap-button');
+if (tapBtn) {
+    tapBtn.addEventListener('pointerdown', (e) => {
+        if (currentEnergy > 0) {
+            balance++;
+            currentEnergy--;
+            updateUI();
+            bulutaYaz();
+
+            const p = document.createElement('div');
+            p.innerText = '+1'; p.className = 'plus-one';
+            p.style.left = `${e.clientX}px`; p.style.top = `${e.clientY}px`;
+            p.style.position = 'fixed'; p.style.color = '#00ff88'; p.style.fontWeight = 'bold';
+            p.style.pointerEvents = 'none'; p.style.animation = 'fadeOutUp 0.8s forwards';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 800);
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+    });
 }
 
 // 8. ÇARK ÇİZİMİ
@@ -204,25 +218,24 @@ function drawWheel() {
         ctx.rotate(angle + arc / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
-        ctx.font = "bold 13px Arial";
+        ctx.font = "bold 12px Arial";
         ctx.fillText(rewards[i].text, radius - 15, 5);
         ctx.restore();
     }
 }
 
-// 9. MARKET
+// 9. MARKET VE NAVİGASYON
 window.buyItem = function(name, price) {
     if (balance >= price) {
-        if (confirm(`${name} alınsın mı?`)) {
+        if (confirm(`${name} satın alınsın mı?`)) {
             balance -= price;
             updateUI();
             bulutaYaz();
-            alert("✅ İşlem başarılı!");
+            alert("✅ Siparişiniz başarıyla oluşturuldu!");
         }
-    } else { alert("❌ Yetersiz bakiye!"); }
+    } else { alert("❌ Bakiye yetersiz!"); }
 };
 
-// 10. NAVİGASYON
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         const target = btn.getAttribute('data-target');
@@ -235,6 +248,27 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 });
 
 // Başlat
-document.getElementById('username').textContent = tg.initDataUnsafe?.user?.first_name || backupName;
-drawWheel();
-updateUI();
+function init() {
+    const userDisplay = document.getElementById('username');
+    if (userDisplay) userDisplay.textContent = tg.initDataUnsafe?.user?.first_name || backupName;
+
+    const mList = document.getElementById('market-list');
+    if (mList) {
+        const items = [
+            { n: "100 Instagram Takipçi", p: 5000 },
+            { n: "500 Instagram Beğeni", p: 3000 },
+            { n: "100 TikTok Takipçi", p: 2500 }
+        ];
+        mList.innerHTML = items.map(i => `
+            <div class="market-item" style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:15px; margin:10px; border-radius:15px; color:white;">
+                <span>${i.n}</span>
+                <button class="buy-btn" onclick="buyItem('${i.n}', ${i.p})" style="background:#00ff88; border:none; padding:10px 15px; border-radius:10px; font-weight:bold;">${i.p} 💰</button>
+            </div>
+        `).join('');
+    }
+
+    drawWheel();
+    updateUI();
+}
+
+init();
