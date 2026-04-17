@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V28 NİHAİ (SON VE KESİN ÇÖZÜM)
+ * VOLTPY TAPPER & CASINO - V30 (KESİN MERKEZLEME VE CACHE KIRICI)
  * Geliştirici: Berke (VoltPy)
- * Hata Çözümü: 160px'lik görünmez duvar silindi, Flexbox Auto-Margin ile kusursuz merkezleme yapıldı.
+ * Çözüm: Flex-grow ile tapper butonu kalan boşluğun tam ortasına kilitlendi.
  */
 
 /* 1. SİSTEM RESET VE MOBİL OPTİMİZASYON */
@@ -111,7 +111,7 @@ html, body {
     color: #ff8c00;
     font-size: 13px;
     font-weight: 900;
-    margin: 5px 0;
+    margin: 15px 0 0 0;
     text-align: center;
     text-transform: uppercase;
     text-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
@@ -120,14 +120,13 @@ html, body {
 
 @keyframes orange-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.05); } }
 
-/* 🔥 MUCİZE KOD BURASI: Görünmez duvarı silip butonu merkeze çiviledik 🔥 */
+/* 🔥 İŞTE SORUNU KÖKTEN ÇÖZEN MÜHENDİSLİK HARİKASI KISIM 🔥 */
 #tap-button-container {
+    flex: 1; /* Ekrandaki üst butonlardan kalan TÜM boşluğu sahiplenir */
     width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: auto;    /* Üstten kalan boşluğu otomatik eşitler */
-    margin-bottom: auto; /* Alttan kalan boşluğu otomatik eşitler */
+    justify-content: center; /* Yatayda tam orta */
+    align-items: center; /* Dikeyde tam orta (Buton artık sımsıkı ortada) */
 }
 
 #tap-button {
@@ -227,13 +226,17 @@ html, body {
 .nav-icon { font-size: 24px; }
 .nav-text { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 3px; }
 
-/* 9. EKRAN KONTROLLERİ (PADDİNG DÜZELTİLDİ) */
+/* 9. EKRAN KONTROLLERİ */
 main { flex: 1; position: relative; overflow: hidden; }
 .screen {
     display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    padding: 20px 20px 100px 20px; /* DİKKAT: 160px olan duvar 100px'e düşürüldü. Sorun buydu! */
+    padding: 20px 20px 90px 20px; /* Alttaki hayalet boşluk temizlendi */
     overflow-y: auto;
 }
-.screen.active { display: flex; flex-direction: column; }
+.screen.active { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+}
 
 ::-webkit-scrollbar { display: none; }
