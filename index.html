@@ -3,154 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VoltPy | SMM Bot</title>
-    
+    <title>VoltPy SMM Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS dosyan yüklendiğinde çakışmaması için temel yapı */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Kaydırmayı engeller */
+            user-select: none;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Üst Panel */
+        .top-bar {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #334155;
+        }
+
+        .balance-container {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        /* Enerji Barı */
+        .energy-section {
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .energy-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #1e293b;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        #energy-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #facc15, #eab308);
+            transition: width 0.3s ease;
+        }
+
+        /* Ekranlar */
+        main {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Tapper Butonu */
+        #tap-button {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #334155 0%, #0f172a 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+            transition: transform 0.1s active;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #tap-button:active {
+            transform: scale(0.95);
+        }
+
+        #tap-button img {
+            width: 150px;
+            pointer-events: none;
+        }
+
+        /* Navigasyon */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: #1e293b;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #334155;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-weight: bold;
+            padding: 10px;
+            transition: 0.3s;
+        }
+
+        .nav-btn.active {
+            color: #00ff88;
+            transform: scale(1.1);
+        }
+
+        /* Tıklama Efekti (+1 Yazısı) */
+        .plus-one {
+            position: absolute;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 24px;
+            pointer-events: none;
+            animation: moveUp 0.8s ease-out forwards;
+            z-index: 2000;
+        }
+
+        @keyframes moveUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
+
     <div id="app">
-        
-        <header class="header">
+        <header class="top-bar">
             <div class="user-info">
-                <i class="fa-solid fa-circle-user"></i>
-                <span id="username">Yükleniyor...</span>
+                👋 <span id="username">Oyuncu</span>
             </div>
-            <div class="header-right">
-                <div class="balance-container">
-                    <i class="fa-solid fa-coins"></i>
-                    <span id="balance">0</span>
-                </div>
+            <div class="balance-container">
+                <span id="balance">0</span> 💰
             </div>
         </header>
 
-        <main id="home-screen" class="screen active">
-            <div class="tap-area">
-                <div id="tap-button" class="coin-wrapper">
-                    <div class="coin-inner">
-                        <i class="fa-solid fa-bolt-lightning"></i>
-                        <span>VOLT</span>
-                    </div>
-                </div>
+        <div class="energy-section">
+            <div class="energy-bar-bg">
+                <div id="energy-bar"></div>
             </div>
-            
-            <div class="energy-section">
-                <div class="energy-info">
-                    <i class="fa-solid fa-battery-three-quarters"></i>
-                    <span id="energy-text">500 / 500</span>
-                </div>
-                <div class="energy-bar-container">
-                    <div id="energy-bar" class="energy-bar-fill"></div>
-                </div>
-            </div>
-        </main>
+            <small id="energy-text">500 / 500</small>
+        </div>
 
-        <main id="ads-screen" class="screen">
-            <div class="screen-header">
-                <h2>Şanslı Volt</h2>
-                <p>Eğlencesine çevir, Voltları topla!</p>
-            </div>
-            
-            <div class="wheel-box">
-                <div class="wheel-pointer"></div>
-                <div id="lucky-wheel" class="wheel">
-                    </div>
-            </div>
-            
-            <button id="spin-button" class="action-btn">
-                <i class="fa-solid fa-rotate"></i> 100 💰 ÇEVİR
-            </button>
-        </main>
-
-        <main id="market-screen" class="screen">
-            <div class="screen-header">
-                <h2>Volt Market</h2>
-                <p>Bakiyeni SMM hizmetlerine dönüştür.</p>
-            </div>
-            <div id="market-list" class="market-list">
+        <main>
+            <section id="home" class="screen active">
+                <div id="tap-button">
+                    <img src="https://img.icons8.com/clouds/200/lightning-bolt.png" alt="Volt">
                 </div>
+            </section>
+
+            <section id="earn" class="screen">
+                <h2 style="color: #00ff88;">Şans Çarkı</h2>
+                <div class="wheel-box" style="position: relative; width: 300px; height: 300px; margin: 20px auto; overflow: hidden; border-radius: 50%; border: 5px solid #1e293b;">
+                    <div id="lucky-wheel" class="wheel" style="width: 100%; height: 100%; position: relative; border-radius: 50%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); background: #1e293b;">
+                        </div>
+                    <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); color: #ff4d4d; font-size: 30px; z-index: 10;">▼</div>
+                </div>
+                <button id="spin-button" style="margin-top: 20px; padding: 12px 30px; background: #00ff88; border: none; border-radius: 25px; font-weight: bold; cursor: pointer;">ÇEVİR (100 💰)</button>
+            </section>
+
+            <section id="market" class="screen">
+                <h2 style="color: #00ff88;">SMM Market</h2>
+                <div id="market-list" style="width: 100%;">
+                    </div>
+            </section>
         </main>
 
         <nav class="bottom-nav">
-            <button class="nav-btn active" data-target="home-screen">
-                <i class="fa-solid fa-hand-pointer"></i>
-                <span>Tıkla</span>
-            </button>
-            <button class="nav-btn" data-target="ads-screen">
-                <i class="fa-solid fa-clover"></i>
-                <span>Kazan</span>
-            </button>
-            <button class="nav-btn" data-target="market-screen">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span>Market</span>
-            </button>
+            <button class="nav-btn active" data-target="home">TAPPER</button>
+            <button class="nav-btn" data-target="earn">KAZAN</button>
+            <button class="nav-btn" data-target="market">MARKET</button>
         </nav>
-
     </div>
 
-    <script src="main.js"></script>
-</body>
-</html>
-                        <span>VOLT</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="energy-section">
-                <div class="energy-info">
-                    <i class="fa-solid fa-battery-three-quarters"></i>
-                    <span id="energy-text">500 / 500</span>
-                </div>
-                <div class="energy-bar-container">
-                    <div id="energy-bar" class="energy-bar-fill"></div>
-                </div>
-            </div>
-        </main>
+    <script type="module" src="main.js"></script>
 
-        <main id="ads-screen" class="screen">
-            <div class="screen-header">
-                <h2>Şans Çarkı</h2>
-                <p>Her çeviriş 100 Coin!</p>
-            </div>
-            <div class="wheel-container">
-                <div id="lucky-wheel" class="visual-wheel">
-                    <i class="fa-solid fa-star"></i>
-                </div>
-                <button id="spin-button" class="action-btn">
-                    <i class="fa-solid fa-rotate"></i> ÇEVİR
-                </button>
-            </div>
-        </main>
-
-        <main id="market-screen" class="screen">
-            <div class="screen-header">
-                <h2>SMM Market</h2>
-                <p>Hizmet satın almak için bakiye topla.</p>
-            </div>
-            <div id="market-list" class="market-list">
-                </div>
-        </main>
-
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-target="home-screen">
-                <i class="fa-solid fa-hand-pointer"></i>
-                <span>Tıkla</span>
-            </button>
-            <button class="nav-btn" data-target="ads-screen">
-                <i class="fa-solid fa-clover"></i>
-                <span>Kazan</span>
-            </button>
-            <button class="nav-btn" data-target="market-screen">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span>Market</span>
-            </button>
-        </nav>
-
-    </div>
-
-    <script src="main.js"></script>
 </body>
 </html>
