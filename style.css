@@ -1,6 +1,6 @@
-/* VOLTPY TAPPER & CASINO - V18 NİHAİ CSS 
+/* VOLTPY TAPPER & CASINO - V19 NİHAİ CSS 
     Geliştirici: Berke (VoltPy)
-    Düzeltme: Otomasyon yazısı (Turbo Status) senkronu ve Neon Turuncu tasarımı.
+    Özellikler: Neon Orange Turbo, Mekanik Tapper, Gelişmiş Boşluklar, Kırmızı Modal
 */
 
 /* 1. SİSTEM VE MOBİL RESET */
@@ -16,12 +16,12 @@
 }
 
 html, body {
-    background-color: #020617;
+    background-color: #020617; /* Derin gece mavisi */
     color: #f8fafc;
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    touch-action: manipulation;
+    touch-action: manipulation; /* Zoom ve kaymayı engeller */
 }
 
 #app {
@@ -67,7 +67,7 @@ html, body {
     transition: width 0.3s ease-out;
 }
 
-/* Enerji bittiğinde barın pulse efekti */
+/* Enerji Bittiğinde Barın Pulse Efekti */
 .energy-empty #energy-bar {
     background: linear-gradient(90deg, #ff4444, #991b1b) !important;
     animation: energy-pulse 1s infinite;
@@ -105,11 +105,11 @@ html, body {
 
 /* 5. TURBO DURUMU (NEON TURUNCU & ARALIKLI) */
 #turbo-status {
-    display: none; /* JS ile açılır/kapanır */
+    display: none; /* JS ile kontrol edilir */
     color: #ff8c00; /* Neon Turuncu */
     font-size: 13px;
     font-weight: 900;
-    margin: 25px 0; /* İSTEK: Araya ferahlık katmak için mesafe */
+    margin: 30px 0; /* İSTEK: Araya mesafe koyuldu */
     text-align: center;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -147,7 +147,7 @@ html, body {
     box-shadow: 0 0 60px rgba(0, 255, 136, 0.8);
 }
 
-/* Sarsılma (Hata/Enerji Bitiş) */
+/* Sarsılma (Shake) */
 .shake {
     animation: shake-anim 0.2s ease-in-out;
     border-color: #ff4444 !important;
@@ -211,6 +211,7 @@ html, body {
     border-radius: 30px;
     font-weight: 900;
     text-transform: uppercase;
+    cursor: pointer;
 }
 
 /* 9. REKLAM BUTONLARI VE ALT NAV */
@@ -225,6 +226,7 @@ html, body {
 .action-btn {
     flex: 1; border: none; padding: 12px 5px; border-radius: 15px;
     font-size: 11px; font-weight: 900; text-transform: uppercase;
+    cursor: pointer;
 }
 
 #energy-ad-btn { background: rgba(0, 212, 255, 0.1); border: 1px solid #00d4ff; color: #00d4ff; }
@@ -236,12 +238,12 @@ html, body {
     border-top: 1px solid rgba(255, 255, 255, 0.1); position: fixed; bottom: 0; width: 100%;
 }
 
-.nav-btn { background: none; border: none; color: #64748b; display: flex; flex-direction: column; align-items: center; width: 33%; }
+.nav-btn { background: none; border: none; color: #64748b; display: flex; flex-direction: column; align-items: center; width: 33%; cursor: pointer; }
 .nav-btn.active { color: #00ff88; }
 .nav-icon { font-size: 24px; }
 .nav-text { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 3px; }
 
-/* 10. EKRANLAR VE DİĞERLERİ */
+/* 10. EKRANLAR */
 main { flex: 1; position: relative; overflow: hidden; }
 .screen {
     display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -249,10 +251,10 @@ main { flex: 1; position: relative; overflow: hidden; }
 }
 .screen.active { display: flex; flex-direction: column; align-items: center; }
 
-/* Casino Ekranı Düzenlemeleri */
+/* Casino (Çark) Ayarları */
 .wheel-outer { position: relative; width: 280px; height: 280px; margin: 10px auto; }
 #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #1e293b; }
 .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 50; }
-#spin-button { width: 90%; height: 60px; border-radius: 30px; border: none; background: linear-gradient(45deg, #00ff88, #00bd65); color: #020617; font-weight: 900; margin-top: 10px; }
+#spin-button { width: 90%; height: 60px; border-radius: 30px; border: none; background: linear-gradient(45deg, #00ff88, #00bd65); color: #020617; font-weight: 900; margin-top: 10px; cursor: pointer; }
 
 ::-webkit-scrollbar { display: none; }
