@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V41 (CANLI KRONOMETRE & COOLDOWN OVERLAY)
+ * VOLTPY TAPPER & CASINO - V42 (5 DK COOLDOWN & SAATLİK 5 LİMİT)
  * Geliştirici: Berke (VoltPy)
- * Özellikler: Aktiflik algılayıcı, ayrı reklam sayaçları, 12 dk cooldown ve UI üzerinde şeffaf canlı geri sayım perdesi.
+ * Özellikler: Saatlik 5 reklam limiti sabit tutularak, reklamlar arası bekleme süresi 5 dakikaya indirildi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -35,12 +35,12 @@ let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, lastUpdate = Date.now();
 let autoClickInterval = null;
 
-// 🔥 REKLAM SAYAÇLARI VE COOLDOWN DEĞİŞKENLERİ 🔥
+// 🔥 REKLAM SAYAÇLARI VE 5 DAKİKA COOLDOWN 🔥
 let turboAdCount = 0;
 let energyAdCount = 0;
 let lastTurboAdTime = 0;
 let lastEnergyAdTime = 0;
-const AD_COOLDOWN_MS = 12 * 60 * 1000; // 12 Dakika bekleme süresi
+const AD_COOLDOWN_MS = 5 * 60 * 1000; // 5 Dakika bekleme süresi
 
 // 🔥 AKTİFLİK KONTROLÜ İÇİN ZAMANLAYICI 🔥
 let inactivityTimer = null; 
@@ -150,7 +150,7 @@ function tick() {
         bulutaYaz();
     }
 
-    // Reklam sayaçları canlı güncelleme (Her saniye çalışır)
+    // Reklam sayaçları canlı güncelleme
     updateCooldowns();
 }
 
@@ -159,7 +159,7 @@ function updateCooldowns() {
     const now = Date.now();
     const currentHour = new Date(now).getHours();
     
-    // Saat değiştiyse (Örn: 14:59'dan 15:00'a geçildiyse) limitleri sessizce sıfırla
+    // Saat değiştiyse limitleri sessizce sıfırla
     if (currentHour !== lastAdHour) {
         turboAdCount = 0;
         energyAdCount = 0;
@@ -168,7 +168,6 @@ function updateCooldowns() {
         updateUI();
     }
 
-    // Geri sayımı MM:SS formatına çeviren küçük araç
     function formatTime(ms) {
         if (ms < 0) return "00:00";
         const m = Math.floor((ms % 3600000) / 60000);
@@ -176,13 +175,13 @@ function updateCooldowns() {
         return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    // ⚡ ENERJİ BUTONU PERDESİ KONTROLÜ
+    // ⚡ ENERJİ BUTONU PERDESİ
     const energyOverlay = document.getElementById('energy-cooldown-overlay');
     const energyTimerText = document.getElementById('energy-cooldown-timer');
     if (energyOverlay && energyTimerText) {
         if (energyAdCount >= 5) {
             const nextHour = new Date(now);
-            nextHour.setHours(currentHour + 1, 0, 0, 0); // Bir sonraki saat başı
+            nextHour.setHours(currentHour + 1, 0, 0, 0); 
             energyOverlay.style.display = 'flex';
             energyOverlay.querySelector('span').textContent = "LİMİT DOLDU (YENİLENME)";
             energyTimerText.textContent = formatTime(nextHour.getTime() - now);
@@ -191,11 +190,11 @@ function updateCooldowns() {
             energyOverlay.querySelector('span').textContent = "BEKLEME SÜRESİ";
             energyTimerText.textContent = formatTime(AD_COOLDOWN_MS - (now - lastEnergyAdTime));
         } else {
-            energyOverlay.style.display = 'none'; // İzleme hakkı varsa perdeyi kaldır
+            energyOverlay.style.display = 'none';
         }
     }
 
-    // 🚀 TURBO BUTONU PERDESİ KONTROLÜ
+    // 🚀 TURBO BUTONU PERDESİ
     const turboOverlay = document.getElementById('turbo-cooldown-overlay');
     const turboTimerText = document.getElementById('turbo-cooldown-timer');
     if (turboOverlay && turboTimerText) {
@@ -246,7 +245,6 @@ const handleTap = (e) => {
     }
     updateUI();
 
-    // 1.5 saniye tıklanmazsa otomatik buluta kaydet
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
         bulutaYaz();
@@ -315,13 +313,12 @@ if (spinBtnEl) {
     };
 }
 
-// 8. 🚀 REKLAM VE TURBO MOTORU (12 Dk Cooldown & Ayrı Sayaçlar)
+// 8. 🚀 REKLAM VE TURBO MOTORU (5 Dk Cooldown)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
     
     const now = Date.now();
     
-    // Güvenlik: Tıklansa bile JavaScript engeller
     if (energyAdCount >= 5 || now - lastEnergyAdTime < AD_COOLDOWN_MS) return;
 
     if (confirm("+250 Enerji ister misin? (Buraya reklam gelecek)")) {
@@ -330,7 +327,7 @@ window.watchAdForEnergy = () => {
         lastEnergyAdTime = now;
         updateUI(); 
         bulutaYaz();
-        updateCooldowns(); // Perdeyi anında indir
+        updateCooldowns(); 
     }
 };
 
@@ -339,7 +336,6 @@ window.startTurboMode = () => {
     
     const now = Date.now();
     
-    // Güvenlik: Tıklansa bile JavaScript engeller
     if (turboAdCount >= 5 || now - lastTurboAdTime < AD_COOLDOWN_MS) return;
     
     if (currentEnergy < 100) {
@@ -362,7 +358,7 @@ window.startTurboMode = () => {
                 stopAutoClicker(); 
             }
         }, 85);
-        updateCooldowns(); // Perdeyi anında indir
+        updateCooldowns(); 
     }
 };
 
@@ -376,7 +372,7 @@ function stopAutoClicker() {
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
     updateUI(); 
-    bulutaYaz(); // Turbo bitince kaydet
+    bulutaYaz(); 
 }
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
@@ -406,7 +402,6 @@ function updateUI() {
     document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
     document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
     
-    // HTML'deki buton yazılarını güncelleyen kısım
     const turboAdEl = document.getElementById('turbo-ad-text');
     if(turboAdEl) turboAdEl.textContent = `${turboAdCount}/5`;
 
@@ -448,21 +443,4 @@ function drawWheel() {
         ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, radius, angle, angle + (Math.PI / 4));
         ctx.fillStyle = i % 2 === 0 ? '#00ff88' : '#1e293b'; ctx.fill();
         ctx.save(); ctx.rotate(angle + (Math.PI / 8));
-        ctx.textAlign = "right"; ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
-        ctx.font = "bold 13px Arial"; ctx.fillText(rewards[i].text, radius - 15, 5); ctx.restore();
-    }
-    ctx.translate(-160, -160);
-}
-
-// 11. SİGORTA SİSTEMİ: UYGULAMA KAPANIRKEN KESİN KAYDET
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === 'hidden') {
-        bulutaYaz();
-    }
-});
-
-window.addEventListener("beforeunload", () => {
-    bulutaYaz();
-});
-
-drawWheel(); updateUI(); updateCooldowns();
+        ctx.textAlign = "right"; ctx.fillStyle = i % 2 === 0 ? '#00
