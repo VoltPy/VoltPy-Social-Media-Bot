@@ -1,11 +1,11 @@
 /**
- * VOLTPY TAPPER & CASINO - V21 NİHAİ (FULL + FULL YENİ KULLANICI FİX)
+ * VOLTPY TAPPER & CASINO - V35 NİHAİ KUSURSUZ BACKEND
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Yeni kullanıcıların yükleme ekranında (loading) takılı kalma sorunu çözüldü.
+ * Çözüm: Yeni kullanıcılarda yükleme ekranında takılma hatası (onValue bug'ı) %100 giderildi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 1. FIREBASE KONFİGÜRASYONU
 const firebaseConfig = {
@@ -21,18 +21,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. TELEGRAM WEBAPP PARAMETRELERİ
+// 2. TELEGRAM WEBAPP VE GÜVENLİ ID ÇEKİMİ
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
 const urlParams = new URLSearchParams(window.location.search);
-const userId = urlParams.get('uid'); 
-const backupName = urlParams.get('name') || "Oyuncu";
+// 🔥 URL'den ID alamazsa direkt Telegram'ın içinden zorla alır! 🔥
+const userId = urlParams.get('uid') || tg.initDataUnsafe?.user?.id; 
+const backupName = urlParams.get('name') || tg.initDataUnsafe?.user?.first_name || "Oyuncu";
 
 let balance = 0, currentEnergy = 0, lastFreeSpin = 0, spinCount = 0;
 let adCount = 0, lastAdHour = new Date().getHours();
 let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
-let currentRotation = 0, firstLoad = false, lastUpdate = Date.now();
+let currentRotation = 0, lastUpdate = Date.now();
 let autoClickInterval = null;
 
 // 3. 🎰 ÖDÜL TABLOSU
@@ -47,52 +48,61 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 4. 📡 VERİ SENKRONİZASYONU VE YENİ KULLANICI FİXİ
+// 4. 📡 VERİ YÜKLEME VE YENİ KULLANICI KAYDI (KÖKTEN ÇÖZÜLEN KISIM)
+const dbRef = ref(db);
+
 if (userId) {
-    onValue(ref(db, 'users/' + userId), (snapshot) => {
-        if (isSpinning || isAutoClicking) return; // İşlemdeyken veriyi ezme
-        
-        const data = snapshot.val();
-        
-        if (data) {
-            // ESKİ KULLANICI: Verileri buluttan çek
+    get(child(dbRef, `users/${userId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            // 🔥 ESKİ KULLANICI: Verileri Yükle 🔥
+            const data = snapshot.val();
             balance = data.balance || 0;
             lastFreeSpin = data.lastFreeSpin || 0;
             spinCount = data.spinCount || 0;
             adCount = data.adCount || 0;
+            
             if (new Date().getHours() !== (data.lastAdHour || 0)) adCount = 0;
 
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
+            // Adam oyunda değilken geçen her dakika için 1 enerji ekle
             currentEnergy = Math.min(500, savedEnergy + Math.floor((Date.now() - savedTime) / 60000));
             lastUpdate = Date.now();
         } else {
-            // YENİ KULLANICI (Sorun buradaydı): Veritabanında kaydı yoksa sıfırdan oluştur
+            // 🔥 YENİ KULLANICI: Sıfırdan Hesap Oluştur 🔥
             balance = 0;
-            currentEnergy = 500; // Yeni gelen adama full enerji verelim
+            currentEnergy = 500; // Yeni adama hoş geldin hediyesi full enerji
             lastFreeSpin = 0;
             spinCount = 0;
             adCount = 0;
             lastUpdate = Date.now();
-            bulutaYaz(); // Firebase'e ilk kaydını aç
+            bulutaYaz(); // Hesabı veritabanına aç
         }
-
+        
+        // İşlem bitince arayüzü güncelle ve o siyah perdeyi zorla kaldır!
         updateUI();
+        removeLoadingScreen();
 
-        // Her halükarda (yeni veya eski fark etmez) o siyah perdeyi KESİNLİKLE kaldır
-        if (!firstLoad) { 
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.style.display = 'none'; 
-            const st = document.getElementById('turbo-status');
-            if (st) st.style.display = 'none';
-            firstLoad = true; 
-        }
+    }).catch((error) => {
+        console.error("Firebase Bağlantı Hatası:", error);
+        // İnternet gitse bile adam siyah ekranda kalmasın diye acil durum açılışı
+        currentEnergy = 500;
+        updateUI();
+        removeLoadingScreen();
     });
 } else {
-    // Tarayıcıdan test ederken userId olmazsa ekran donmasın diye güvenlik kilidi
-    document.getElementById('loading-overlay').style.display = 'none'; 
+    // Tarayıcıdan test ederken
     currentEnergy = 500;
     updateUI();
+    removeLoadingScreen();
+}
+
+// O siyah perdeyi anında imha eden fonksiyon
+function removeLoadingScreen() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+    const st = document.getElementById('turbo-status');
+    if (st) st.style.display = 'none';
 }
 
 // 5. ⏳ SİSTEM SAYAÇLARI
@@ -181,7 +191,6 @@ if (spinBtnEl) {
         else { balance -= cost; spinCount++; }
 
         isSpinning = true;
-        // Yeni bir çevrim başlarken eski ödül kartını gizle
         const rewardEl = document.getElementById('reward-text');
         if(rewardEl) rewardEl.style.display = 'none';
         updateUI(); bulutaYaz();
@@ -206,7 +215,6 @@ if (spinBtnEl) {
             else balance += prize.val;
             updateUI(); bulutaYaz();
             
-            // ÖDÜL KARTINI GÖSTER
             if(rewardEl) {
                 rewardEl.textContent = `KAZANÇ: ${prize.text}`;
                 rewardEl.style.display = 'inline-block';
@@ -261,16 +269,22 @@ function stopAutoClicker() {
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
 function bulutaYaz() {
-    if (userId) set(ref(db, 'users/' + userId), { 
-        balance, energy: currentEnergy, lastFreeSpin, spinCount, adCount, 
-        lastAdHour: new Date().getHours(), username: backupName, lastUpdate: Date.now() 
-    });
+    if (!userId) return; // Kullanıcı yoksa boşa yazma
+    set(ref(db, 'users/' + userId), { 
+        balance: balance, 
+        energy: currentEnergy, 
+        lastFreeSpin: lastFreeSpin, 
+        spinCount: spinCount, 
+        adCount: adCount, 
+        lastAdHour: new Date().getHours(), 
+        username: backupName, 
+        lastUpdate: Date.now() 
+    }).catch(error => console.error("Firebase Yazma Hatası:", error)); // Hata olursa sistemi çökertme
 }
 
 function updateUI() {
     document.getElementById('balance').textContent = balance;
     
-    // Kullanıcı adını da ekrana yazdıralım
     const userEl = document.getElementById('username');
     if(userEl) userEl.textContent = backupName;
 
