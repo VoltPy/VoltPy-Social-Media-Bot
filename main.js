@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V43 (ÇÖKME KORUMASI & FAILSAFE SİSTEMİ)
+ * VOLTPY TAPPER & CASINO - V44 (KESİN KAYIT & ANTI-ROLLBACK SİSTEMİ)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Yükleme ekranında takılma (Crash) sorunu "Acil Durum Sigortası" ile %100 engellendi.
+ * Çözüm: Sayfa yenileyince verilerin geri gelmesi sorunu çözüldü. Her 15 tıkta zorunlu kayıt eklendi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -157,9 +157,7 @@ function tick() {
         }
 
         updateCooldowns();
-    } catch(e) {
-        // Sessizce hatayı atla ki sistem kilitlenmesin
-    }
+    } catch(e) {}
 }
 
 function updateCooldowns() {
@@ -251,6 +249,9 @@ const handleTap = (e) => {
         if (currentEnergy > 0) {
             balance++; currentEnergy--;
             createPlusOne(touches[i].clientX, touches[i].clientY);
+            
+            // 🔥 YENİ SİGORTA: Telegram çökse bile her 15 tıkta bir kaydet!
+            if (balance % 15 === 0) bulutaYaz();
         }
     }
     updateUI();
@@ -359,6 +360,9 @@ window.startTurboMode = () => {
             if (currentEnergy > 0) {
                 balance++; currentEnergy--; updateUI();
                 createPlusOne(window.innerWidth / 2, window.innerHeight / 2);
+                
+                // 🔥 YENİ SİGORTA: Turbo modunda da her 15 tıkta bir kaydet!
+                if (balance % 15 === 0) bulutaYaz();
             } else { 
                 stopAutoClicker(); 
             }
