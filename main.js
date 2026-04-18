@@ -1,17 +1,18 @@
 /**
- * VOLTPY TAPPER & CASINO - V47 (ZIRHLI FRONTEND)
+ * VOLTPY TAPPER & CASINO - V48 (BACKEND BAĞLANTILI FULL SÜRÜM)
  * Geliştirici: Berke (VoltPy)
- * Özellik: Backend bağımlı kilit sistemi. Backend yoksa oyun yok.
+ * Açıklama: Bu dosya GitHub Pages'e yüklenmelidir.
  */
 
-// 1. BACKEND KONFIGURASYONU (PythonAnywhere linkini alınca buraya yazacağız)
-const BACKEND_URL = "https://voltpy.pythonanywhere.com/api"; 
+// 1. AYARLAR - PythonAnywhere veya Render linkini buraya yapıştır!
+const BACKEND_URL = "https://berkevoltpy.pythonanywhere.com/api"; 
 
+// Telegram WebApp entegrasyonu
 const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
-// Telegram Verileri
-const userId = tg.initDataUnsafe?.user?.id || "web_test";
+// Kullanıcı bilgilerini Telegram'dan çek, yoksa test modu
+const userId = tg.initDataUnsafe?.user?.id || "web_test_user";
 const firstName = tg.initDataUnsafe?.user?.first_name || "Oyuncu";
 
 let balance = 0, currentEnergy = 0, spinCount = 0;
@@ -23,7 +24,7 @@ const rewards = [
     { text: "100 💰" }, { text: "250 💰" }, { text: "5000 💰" }, { text: "⚡ FULL" }
 ];
 
-// 2. 🛡️ GÜVENLİK VE İLETİŞİM MOTORU
+// 2. 📡 İLETİŞİM MOTORU (PYTHON İLE KONUŞUR)
 async function apiCall(endpoint, payload = {}) {
     try {
         const response = await fetch(`${BACKEND_URL}${endpoint}`, {
@@ -34,45 +35,32 @@ async function apiCall(endpoint, payload = {}) {
             },
             body: JSON.stringify(payload)
         });
-        
-        if (!response.ok) throw new Error("Sunucu Kapalı");
         const res = await response.json();
         return res;
     } catch (e) {
-        console.error("Kritik Bağlantı Hatası:", e);
-        showStatus("SUNUCU BAĞLANTISI YOK!");
-        return { success: false };
+        console.error("Bağlantı Hatası:", e);
+        return { success: false, message: "Sunucuya ulaşılamıyor!" };
     }
 }
 
-function showStatus(msg) {
-    const loadingText = document.querySelector('#loading-overlay p');
-    if (loadingText) loadingText.textContent = msg;
-}
-
-// 3. 🚀 SİSTEMİ BAŞLAT (BACKEND KONTROLÜ)
-async function startApp() {
-    showStatus("Sunucuya bağlanılıyor...");
-    
-    // Backend'den kullanıcı verilerini çekmeyi dene
+// 3. 🚀 UYGULAMAYI BAŞLAT
+async function initApp() {
     const res = await apiCall('/get_user');
-    
     if (res.success) {
-        balance = res.data.balance;
-        currentEnergy = res.data.energy;
-        spinCount = res.data.spinCount;
-        
+        const d = res.data;
+        balance = d.balance;
+        currentEnergy = d.energy;
+        spinCount = d.spinCount;
         updateUI();
-        drawWheel();
-        // Sadece veri geldiyse yükleme ekranını kaldır!
         document.getElementById('loading-overlay').style.display = 'none';
-        console.log("✅ Sistem Aktif: " + firstName);
+        console.log("Bağlantı Başarılı: " + firstName);
     } else {
-        showStatus("BAĞLANTI HATASI: Sunucu çevrimdışı veya IP adresi yanlış.");
+        document.querySelector('#loading-overlay p').textContent = "SUNUCU BAĞLANTISI BEKLENİYOR...";
     }
+    drawWheel();
 }
 
-// 4. 🎯 TAPPER (TAMAMEN BACKEND KONTROLLÜ)
+// 4. 🎯 TIKLAMA (TAP) MANTIĞI
 const tapBtn = document.getElementById('tap-button');
 
 const handleTap = (e) => {
@@ -82,22 +70,21 @@ const handleTap = (e) => {
     const touches = e.changedTouches ? e.changedTouches : [e];
     for (let i = 0; i < touches.length; i++) {
         if (currentEnergy > 0) {
-            // Görsel olarak artır (Hissiyat için)
             balance++; currentEnergy--; pendingTaps++;
             createPlusOne(touches[i].clientX, touches[i].clientY);
         }
     }
     updateUI();
     
+    // Tıklamaları biriktirip 1 saniye sonra sunucuya toplu yolla (Hız için)
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(syncTaps, 800);
+    inactivityTimer = setTimeout(syncTaps, 1000);
 };
 
 async function syncTaps() {
     if (pendingTaps <= 0) return;
     const count = pendingTaps;
     pendingTaps = 0;
-    
     const res = await apiCall('/tap', { count: count });
     if (res.success) {
         balance = res.data.balance;
@@ -106,9 +93,19 @@ async function syncTaps() {
     }
 }
 
-// 5. 🎡 ÇARK VE REKLAMLAR
+function createPlusOne(x, y) {
+    const p = document.createElement('div');
+    p.innerText = '+1'; p.className = 'plus-one';
+    p.style.left = `${x}px`; p.style.top = `${y}px`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 600);
+}
+
+// 5. 🎡 ÇARK (CASINO) SİSTEMİ
 window.spinWheel = async () => {
     if (isSpinning) return;
+    
+    // Sunucudan kazananı al
     const res = await apiCall('/spin');
     if (!res.success) return alert(res.message);
 
@@ -126,27 +123,24 @@ window.spinWheel = async () => {
         balance = res.newBalance;
         currentEnergy = res.newEnergy;
         updateUI();
-        alert("Kazancınız: " + rewards[pIdx].text);
+        alert("Kazandın: " + rewards[pIdx].text);
     }, 5100);
 };
 
-// 6. ARAYÜZ VE DİĞERLERİ
-function updateUI() {
-    const balEl = document.getElementById('balance');
-    const enText = document.getElementById('energy-text');
-    const enBar = document.getElementById('energy-bar');
-    
-    if (balEl) balEl.textContent = balance;
-    if (enText) enText.textContent = `${currentEnergy} / 500`;
-    if (enBar) enBar.style.width = `${(currentEnergy / 500) * 100}%`;
-}
+// 6. REKLAM VE TURBO
+window.watchAdForEnergy = async () => {
+    const res = await apiCall('/watch_energy_ad');
+    if (res.success) {
+        currentEnergy = res.data.energy;
+        updateUI();
+    } else alert("Enerji limitin doldu!");
+};
 
-function createPlusOne(x, y) {
-    const p = document.createElement('div');
-    p.innerText = '+1'; p.className = 'plus-one';
-    p.style.left = `${x}px`; p.style.top = `${y}px`;
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 600);
+// 7. ARAYÜZ GÜNCELLEME
+function updateUI() {
+    document.getElementById('balance').textContent = balance;
+    document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
+    document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
 }
 
 function drawWheel() {
@@ -166,7 +160,7 @@ function drawWheel() {
     }
 }
 
-// Navigasyon
+// Sayfa Navigasyonu
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
         const target = btn.dataset.target;
@@ -176,11 +170,11 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     };
 });
 
-// Event Listeners
+// Event Listener Başlatıcı
 if (tapBtn) {
     tapBtn.addEventListener('touchstart', handleTap, { passive: false });
     tapBtn.addEventListener('mousedown', (e) => { if (!('ontouchstart' in window)) handleTap(e); });
 }
 
-// Başlat
-startApp();
+// Uygulamayı Başlat
+initApp();
