@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V20 NİHAİ (FULL)
+ * VOLTPY TAPPER & CASINO - V21 NİHAİ (FULL + FULL YENİ KULLANICI FİX)
  * Geliştirici: Berke (VoltPy)
- * Özellikler: Kalın Spin Butonu, Ödül Kartı Sistemi, Turbo Fix, Multi-Touch
+ * Çözüm: Yeni kullanıcıların yükleme ekranında (loading) takılı kalma sorunu çözüldü.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -47,11 +47,15 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 4. 📡 VERİ SENKRONİZASYONU
+// 4. 📡 VERİ SENKRONİZASYONU VE YENİ KULLANICI FİXİ
 if (userId) {
     onValue(ref(db, 'users/' + userId), (snapshot) => {
+        if (isSpinning || isAutoClicking) return; // İşlemdeyken veriyi ezme
+        
         const data = snapshot.val();
-        if (data && !isSpinning && !isAutoClicking) {
+        
+        if (data) {
+            // ESKİ KULLANICI: Verileri buluttan çek
             balance = data.balance || 0;
             lastFreeSpin = data.lastFreeSpin || 0;
             spinCount = data.spinCount || 0;
@@ -62,16 +66,33 @@ if (userId) {
             const savedTime = data.lastUpdate || Date.now();
             currentEnergy = Math.min(500, savedEnergy + Math.floor((Date.now() - savedTime) / 60000));
             lastUpdate = Date.now();
+        } else {
+            // YENİ KULLANICI (Sorun buradaydı): Veritabanında kaydı yoksa sıfırdan oluştur
+            balance = 0;
+            currentEnergy = 500; // Yeni gelen adama full enerji verelim
+            lastFreeSpin = 0;
+            spinCount = 0;
+            adCount = 0;
+            lastUpdate = Date.now();
+            bulutaYaz(); // Firebase'e ilk kaydını aç
+        }
 
-            updateUI();
-            if (!firstLoad) { 
-                document.getElementById('loading-overlay').style.display = 'none'; 
-                const st = document.getElementById('turbo-status');
-                if (st) st.style.display = 'none';
-                firstLoad = true; 
-            }
+        updateUI();
+
+        // Her halükarda (yeni veya eski fark etmez) o siyah perdeyi KESİNLİKLE kaldır
+        if (!firstLoad) { 
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.style.display = 'none'; 
+            const st = document.getElementById('turbo-status');
+            if (st) st.style.display = 'none';
+            firstLoad = true; 
         }
     });
+} else {
+    // Tarayıcıdan test ederken userId olmazsa ekran donmasın diye güvenlik kilidi
+    document.getElementById('loading-overlay').style.display = 'none'; 
+    currentEnergy = 500;
+    updateUI();
 }
 
 // 5. ⏳ SİSTEM SAYAÇLARI
@@ -161,7 +182,8 @@ if (spinBtnEl) {
 
         isSpinning = true;
         // Yeni bir çevrim başlarken eski ödül kartını gizle
-        document.getElementById('reward-text').style.display = 'none';
+        const rewardEl = document.getElementById('reward-text');
+        if(rewardEl) rewardEl.style.display = 'none';
         updateUI(); bulutaYaz();
 
         let totalW = rewards.reduce((s, r) => s + r.weight, 0);
@@ -185,9 +207,10 @@ if (spinBtnEl) {
             updateUI(); bulutaYaz();
             
             // ÖDÜL KARTINI GÖSTER
-            const rewardEl = document.getElementById('reward-text');
-            rewardEl.textContent = `KAZANÇ: ${prize.text}`;
-            rewardEl.style.display = 'inline-block';
+            if(rewardEl) {
+                rewardEl.textContent = `KAZANÇ: ${prize.text}`;
+                rewardEl.style.display = 'inline-block';
+            }
         }, 5100);
     };
 }
@@ -246,6 +269,11 @@ function bulutaYaz() {
 
 function updateUI() {
     document.getElementById('balance').textContent = balance;
+    
+    // Kullanıcı adını da ekrana yazdıralım
+    const userEl = document.getElementById('username');
+    if(userEl) userEl.textContent = backupName;
+
     document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
     document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
     document.getElementById('ad-count').textContent = adCount;
