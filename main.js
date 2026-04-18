@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V36 NİHAİ KUSURSUZ BACKEND (MERKEZİ HESAPLAMA)
+ * VOLTPY TAPPER & CASINO - V37 NİHAİ KUSURSUZ BACKEND (GÜVENLİ ÇIKIŞ)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Çark ücreti (Cost) ve bakiye uyumsuzluğu "Merkezi Hesaplama" ile kökten çözüldü.
+ * Çözüm: "Çark ücreti ve bakiye uyumsuzluğu" çözüldü, kullanıcı çıkışında otomatik veri yedekleme eklendi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -333,5 +333,16 @@ function drawWheel() {
     }
     ctx.translate(-160, -160);
 }
+
+// 🔥 11. SİGORTA SİSTEMİ: KULLANICI OYUNDAN ÇIKARKEN ZORLA KAYDET 🔥
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'hidden') {
+        bulutaYaz();
+    }
+});
+
+window.addEventListener("beforeunload", () => {
+    bulutaYaz();
+});
 
 drawWheel(); updateUI();
