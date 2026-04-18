@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V40 (NİHAİ KUSURSUZ SÜRÜM)
+ * VOLTPY TAPPER & CASINO - V41 (CANLI KRONOMETRE & COOLDOWN OVERLAY)
  * Geliştirici: Berke (VoltPy)
- * Özellikler: Aktiflik algılayıcı, ayrı reklam sayaçları (Turbo/Enerji), 12 dk cooldown, dinamik UI senkronizasyonu.
+ * Özellikler: Aktiflik algılayıcı, ayrı reklam sayaçları, 12 dk cooldown ve UI üzerinde şeffaf canlı geri sayım perdesi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -125,7 +125,7 @@ function removeLoadingScreen() {
     if (st) st.style.display = 'none';
 }
 
-// 5. ⏳ SİSTEM SAYAÇLARI
+// 5. ⏳ SİSTEM SAYAÇLARI VE CANLI KRONOMETRELER
 function tick() {
     const now = Date.now();
     const diff = (24 * 60 * 60 * 1000) - (now - lastFreeSpin);
@@ -148,6 +148,70 @@ function tick() {
     if (currentEnergy < 500 && now - lastUpdate >= 60000) {
         currentEnergy++; lastUpdate = now; updateUI(); 
         bulutaYaz();
+    }
+
+    // Reklam sayaçları canlı güncelleme (Her saniye çalışır)
+    updateCooldowns();
+}
+
+// ⏱️ BUTON PERDELERİNİ YÖNETEN ANA MOTOR
+function updateCooldowns() {
+    const now = Date.now();
+    const currentHour = new Date(now).getHours();
+    
+    // Saat değiştiyse (Örn: 14:59'dan 15:00'a geçildiyse) limitleri sessizce sıfırla
+    if (currentHour !== lastAdHour) {
+        turboAdCount = 0;
+        energyAdCount = 0;
+        lastAdHour = currentHour;
+        bulutaYaz();
+        updateUI();
+    }
+
+    // Geri sayımı MM:SS formatına çeviren küçük araç
+    function formatTime(ms) {
+        if (ms < 0) return "00:00";
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // ⚡ ENERJİ BUTONU PERDESİ KONTROLÜ
+    const energyOverlay = document.getElementById('energy-cooldown-overlay');
+    const energyTimerText = document.getElementById('energy-cooldown-timer');
+    if (energyOverlay && energyTimerText) {
+        if (energyAdCount >= 5) {
+            const nextHour = new Date(now);
+            nextHour.setHours(currentHour + 1, 0, 0, 0); // Bir sonraki saat başı
+            energyOverlay.style.display = 'flex';
+            energyOverlay.querySelector('span').textContent = "LİMİT DOLDU (YENİLENME)";
+            energyTimerText.textContent = formatTime(nextHour.getTime() - now);
+        } else if (now - lastEnergyAdTime < AD_COOLDOWN_MS) {
+            energyOverlay.style.display = 'flex';
+            energyOverlay.querySelector('span').textContent = "BEKLEME SÜRESİ";
+            energyTimerText.textContent = formatTime(AD_COOLDOWN_MS - (now - lastEnergyAdTime));
+        } else {
+            energyOverlay.style.display = 'none'; // İzleme hakkı varsa perdeyi kaldır
+        }
+    }
+
+    // 🚀 TURBO BUTONU PERDESİ KONTROLÜ
+    const turboOverlay = document.getElementById('turbo-cooldown-overlay');
+    const turboTimerText = document.getElementById('turbo-cooldown-timer');
+    if (turboOverlay && turboTimerText) {
+        if (turboAdCount >= 5) {
+            const nextHour = new Date(now);
+            nextHour.setHours(currentHour + 1, 0, 0, 0);
+            turboOverlay.style.display = 'flex';
+            turboOverlay.querySelector('span').textContent = "LİMİT DOLDU (YENİLENME)";
+            turboTimerText.textContent = formatTime(nextHour.getTime() - now);
+        } else if (now - lastTurboAdTime < AD_COOLDOWN_MS) {
+            turboOverlay.style.display = 'flex';
+            turboOverlay.querySelector('span').textContent = "BEKLEME SÜRESİ";
+            turboTimerText.textContent = formatTime(AD_COOLDOWN_MS - (now - lastTurboAdTime));
+        } else {
+            turboOverlay.style.display = 'none';
+        }
     }
 }
 setInterval(tick, 1000);
@@ -257,15 +321,8 @@ window.watchAdForEnergy = () => {
     
     const now = Date.now();
     
-    if (energyAdCount >= 5) {
-        return alert("Saatlik Enerji Reklamı limitin (5/5) doldu! Lütfen bir sonraki saati bekle.");
-    }
-    
-    if (now - lastEnergyAdTime < AD_COOLDOWN_MS) {
-        const remainingMs = AD_COOLDOWN_MS - (now - lastEnergyAdTime);
-        const remainingMinutes = Math.ceil(remainingMs / 60000);
-        return alert(`Sonraki enerji reklamını izleyebilmek için ${remainingMinutes} dakika daha beklemelisin.`);
-    }
+    // Güvenlik: Tıklansa bile JavaScript engeller
+    if (energyAdCount >= 5 || now - lastEnergyAdTime < AD_COOLDOWN_MS) return;
 
     if (confirm("+250 Enerji ister misin? (Buraya reklam gelecek)")) {
         currentEnergy = Math.min(500, currentEnergy + 250);
@@ -273,6 +330,7 @@ window.watchAdForEnergy = () => {
         lastEnergyAdTime = now;
         updateUI(); 
         bulutaYaz();
+        updateCooldowns(); // Perdeyi anında indir
     }
 };
 
@@ -281,15 +339,8 @@ window.startTurboMode = () => {
     
     const now = Date.now();
     
-    if (turboAdCount >= 5) {
-        return alert("Saatlik Turbo Reklamı limitin (5/5) doldu! Lütfen bir sonraki saati bekle.");
-    }
-    
-    if (now - lastTurboAdTime < AD_COOLDOWN_MS) {
-        const remainingMs = AD_COOLDOWN_MS - (now - lastTurboAdTime);
-        const remainingMinutes = Math.ceil(remainingMs / 60000);
-        return alert(`Sonraki turbo reklamını izleyebilmek için ${remainingMinutes} dakika daha beklemelisin.`);
-    }
+    // Güvenlik: Tıklansa bile JavaScript engeller
+    if (turboAdCount >= 5 || now - lastTurboAdTime < AD_COOLDOWN_MS) return;
     
     if (currentEnergy < 100) {
         return alert("Turbo için en az 100 enerji gerekli.");
@@ -311,6 +362,7 @@ window.startTurboMode = () => {
                 stopAutoClicker(); 
             }
         }, 85);
+        updateCooldowns(); // Perdeyi anında indir
     }
 };
 
@@ -354,7 +406,7 @@ function updateUI() {
     document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
     document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
     
-    // 🔥 HTML'deki buton yazılarını güncelleyen kısım 🔥
+    // HTML'deki buton yazılarını güncelleyen kısım
     const turboAdEl = document.getElementById('turbo-ad-text');
     if(turboAdEl) turboAdEl.textContent = `${turboAdCount}/5`;
 
@@ -413,4 +465,4 @@ window.addEventListener("beforeunload", () => {
     bulutaYaz();
 });
 
-drawWheel(); updateUI();
+drawWheel(); updateUI(); updateCooldowns();
