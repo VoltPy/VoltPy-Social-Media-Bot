@@ -111,7 +111,7 @@ function tick() {
     const diff = (24 * 60 * 60 * 1000) - (now - lastFreeSpin);
     const spinBtn = document.getElementById('spin-button');
     const timerVal = document.getElementById('timer-val');
-    const cost = Math.min(500, 100 + (spinCount * 50));
+    const cost = Math.min(300, 100 + (spinCount * 25));
 
     if (spinBtn) {
         if (freeRoundsLeft > 0) spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
