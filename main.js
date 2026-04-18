@@ -113,6 +113,7 @@ function tick() {
     const timerVal = document.getElementById('timer-val');
     const cost = Math.min(300, 100 + (spinCount * 25));
 
+
     if (spinBtn) {
         if (freeRoundsLeft > 0) spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
         else if (diff <= 0) spinBtn.textContent = "ÜCRETSİZ ÇEVİR";
@@ -182,6 +183,7 @@ if (spinBtnEl) {
         if (isSpinning) return;
         const now = Date.now();
         const cost = Math.min(300, 100 + (spinCount * 25));
+
         const isDailyFree = (now - lastFreeSpin >= 86400000);
 
         if (freeRoundsLeft <= 0 && !isDailyFree && balance < cost) return alert("Bakiye Yetersiz!");
