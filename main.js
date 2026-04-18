@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V39 (GELİŞMİŞ REKLAM YÖNETİMİ VE COOLDOWN)
+ * VOLTPY TAPPER & CASINO - V40 (NİHAİ KUSURSUZ SÜRÜM)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Turbo ve Enerji reklamları ayrıldı. Her biri için saatlik 5 limit ve 12 dakika bekleme süresi (cooldown) eklendi.
+ * Özellikler: Aktiflik algılayıcı, ayrı reklam sayaçları (Turbo/Enerji), 12 dk cooldown, dinamik UI senkronizasyonu.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -35,14 +35,14 @@ let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, lastUpdate = Date.now();
 let autoClickInterval = null;
 
-// 🔥 YENİ: REKLAM SAYAÇLARI VE COOLDOWN DEĞİŞKENLERİ 🔥
+// 🔥 REKLAM SAYAÇLARI VE COOLDOWN DEĞİŞKENLERİ 🔥
 let turboAdCount = 0;
 let energyAdCount = 0;
 let lastTurboAdTime = 0;
 let lastEnergyAdTime = 0;
 const AD_COOLDOWN_MS = 12 * 60 * 1000; // 12 Dakika bekleme süresi
 
-// 🔥 AKTİFLİK KONTROLÜ İÇİN ZAMANLAYICI DEĞİŞKENİ 🔥
+// 🔥 AKTİFLİK KONTROLÜ İÇİN ZAMANLAYICI 🔥
 let inactivityTimer = null; 
 
 // 3. 🎰 ÖDÜL TABLOSU
@@ -182,6 +182,7 @@ const handleTap = (e) => {
     }
     updateUI();
 
+    // 1.5 saniye tıklanmazsa otomatik buluta kaydet
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
         bulutaYaz();
@@ -250,7 +251,7 @@ if (spinBtnEl) {
     };
 }
 
-// 8. 🚀 REKLAM VE TURBO MOTORU (YENİ SİSTEM)
+// 8. 🚀 REKLAM VE TURBO MOTORU (12 Dk Cooldown & Ayrı Sayaçlar)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
     
@@ -266,7 +267,7 @@ window.watchAdForEnergy = () => {
         return alert(`Sonraki enerji reklamını izleyebilmek için ${remainingMinutes} dakika daha beklemelisin.`);
     }
 
-    if (confirm("+250 Enerji ister misin?")) {
+    if (confirm("+250 Enerji ister misin? (Buraya reklam gelecek)")) {
         currentEnergy = Math.min(500, currentEnergy + 250);
         energyAdCount++;
         lastEnergyAdTime = now;
@@ -294,7 +295,7 @@ window.startTurboMode = () => {
         return alert("Turbo için en az 100 enerji gerekli.");
     }
 
-    if (confirm("Otomasyon başlasın mı?")) {
+    if (confirm("Otomasyon başlasın mı? (Buraya reklam gelecek)")) {
         turboAdCount++; 
         lastTurboAdTime = now;
         isAutoClicking = true;
@@ -323,7 +324,7 @@ function stopAutoClicker() {
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
     updateUI(); 
-    bulutaYaz(); 
+    bulutaYaz(); // Turbo bitince kaydet
 }
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
@@ -353,9 +354,12 @@ function updateUI() {
     document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
     document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
     
-    // UI'da toplam reklam izleme sayısını göstermek istersen ikisini toplayabilirsin
-    const adCountEl = document.getElementById('ad-count');
-    if(adCountEl) adCountEl.textContent = (turboAdCount + energyAdCount);
+    // 🔥 HTML'deki buton yazılarını güncelleyen kısım 🔥
+    const turboAdEl = document.getElementById('turbo-ad-text');
+    if(turboAdEl) turboAdEl.textContent = `${turboAdCount}/5`;
+
+    const energyAdEl = document.getElementById('energy-ad-text');
+    if(energyAdEl) energyAdEl.textContent = `${energyAdCount}/5`;
 
     const energySection = document.querySelector('.energy-section');
     const energyWarning = document.getElementById('energy-warning');
