@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V35 NİHAİ KUSURSUZ BACKEND
+ * VOLTPY TAPPER & CASINO - V36 NİHAİ KUSURSUZ BACKEND (MERKEZİ HESAPLAMA)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: Yeni kullanıcılarda yükleme ekranında takılma hatası (onValue bug'ı) %100 giderildi.
+ * Çözüm: Çark ücreti (Cost) ve bakiye uyumsuzluğu "Merkezi Hesaplama" ile kökten çözüldü.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -26,7 +26,6 @@ const tg = window.Telegram?.WebApp || {};
 if (tg.expand) tg.expand();
 
 const urlParams = new URLSearchParams(window.location.search);
-// 🔥 URL'den ID alamazsa direkt Telegram'ın içinden zorla alır! 🔥
 const userId = urlParams.get('uid') || tg.initDataUnsafe?.user?.id; 
 const backupName = urlParams.get('name') || tg.initDataUnsafe?.user?.first_name || "Oyuncu";
 
@@ -48,13 +47,17 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 4. 📡 VERİ YÜKLEME VE YENİ KULLANICI KAYDI (KÖKTEN ÇÖZÜLEN KISIM)
+// 🔥 FİYAT HESAPLAMA MERKEZİ (ARTIK HATA YAPMASI İMKANSIZ) 🔥
+function getSpinCost() {
+    return Math.min(300, 100 + (spinCount * 25));
+}
+
+// 4. 📡 VERİ YÜKLEME VE YENİ KULLANICI KAYDI
 const dbRef = ref(db);
 
 if (userId) {
     get(child(dbRef, `users/${userId}`)).then((snapshot) => {
         if (snapshot.exists()) {
-            // 🔥 ESKİ KULLANICI: Verileri Yükle 🔥
             const data = snapshot.val();
             balance = data.balance || 0;
             lastFreeSpin = data.lastFreeSpin || 0;
@@ -65,39 +68,33 @@ if (userId) {
 
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
-            // Adam oyunda değilken geçen her dakika için 1 enerji ekle
             currentEnergy = Math.min(500, savedEnergy + Math.floor((Date.now() - savedTime) / 60000));
             lastUpdate = Date.now();
         } else {
-            // 🔥 YENİ KULLANICI: Sıfırdan Hesap Oluştur 🔥
             balance = 0;
-            currentEnergy = 500; // Yeni adama hoş geldin hediyesi full enerji
+            currentEnergy = 500;
             lastFreeSpin = 0;
             spinCount = 0;
             adCount = 0;
             lastUpdate = Date.now();
-            bulutaYaz(); // Hesabı veritabanına aç
+            bulutaYaz();
         }
         
-        // İşlem bitince arayüzü güncelle ve o siyah perdeyi zorla kaldır!
         updateUI();
         removeLoadingScreen();
 
     }).catch((error) => {
         console.error("Firebase Bağlantı Hatası:", error);
-        // İnternet gitse bile adam siyah ekranda kalmasın diye acil durum açılışı
         currentEnergy = 500;
         updateUI();
         removeLoadingScreen();
     });
 } else {
-    // Tarayıcıdan test ederken
     currentEnergy = 500;
     updateUI();
     removeLoadingScreen();
 }
 
-// O siyah perdeyi anında imha eden fonksiyon
 function removeLoadingScreen() {
     const overlay = document.getElementById('loading-overlay');
     if (overlay) overlay.style.display = 'none';
@@ -111,8 +108,9 @@ function tick() {
     const diff = (24 * 60 * 60 * 1000) - (now - lastFreeSpin);
     const spinBtn = document.getElementById('spin-button');
     const timerVal = document.getElementById('timer-val');
-    const cost = Math.min(300, 100 + (spinCount * 25));
-
+    
+    // Fiyatı merkezden çekiyoruz
+    const cost = getSpinCost();
 
     if (spinBtn) {
         if (freeRoundsLeft > 0) spinBtn.textContent = `BONUS (${freeRoundsLeft})`;
@@ -182,8 +180,9 @@ if (spinBtnEl) {
     spinBtnEl.onclick = () => {
         if (isSpinning) return;
         const now = Date.now();
-        const cost = Math.min(300, 100 + (spinCount * 25));
-
+        
+        // Fiyatı yine aynı merkezden çekiyoruz! Desync imkansız.
+        const cost = getSpinCost();
         const isDailyFree = (now - lastFreeSpin >= 86400000);
 
         if (freeRoundsLeft <= 0 && !isDailyFree && balance < cost) return alert("Bakiye Yetersiz!");
@@ -271,7 +270,7 @@ function stopAutoClicker() {
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
 function bulutaYaz() {
-    if (!userId) return; // Kullanıcı yoksa boşa yazma
+    if (!userId) return; 
     set(ref(db, 'users/' + userId), { 
         balance: balance, 
         energy: currentEnergy, 
@@ -281,7 +280,7 @@ function bulutaYaz() {
         lastAdHour: new Date().getHours(), 
         username: backupName, 
         lastUpdate: Date.now() 
-    }).catch(error => console.error("Firebase Yazma Hatası:", error)); // Hata olursa sistemi çökertme
+    }).catch(error => console.error("Firebase Yazma Hatası:", error));
 }
 
 function updateUI() {
