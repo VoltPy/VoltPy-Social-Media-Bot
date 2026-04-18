@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V38 (AKTİFLİK KONTROLÜ / DEBOUNCE SİSTEMİ)
+ * VOLTPY TAPPER & CASINO - V39 (GELİŞMİŞ REKLAM YÖNETİMİ VE COOLDOWN)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: 30 tıklama sınırı kaldırıldı. Kullanıcı tıklamayı bıraktığı (inaktif olduğu) an anında buluta kayıt yapılır.
+ * Çözüm: Turbo ve Enerji reklamları ayrıldı. Her biri için saatlik 5 limit ve 12 dakika bekleme süresi (cooldown) eklendi.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -30,10 +30,17 @@ const userId = urlParams.get('uid') || tg.initDataUnsafe?.user?.id;
 const backupName = urlParams.get('name') || tg.initDataUnsafe?.user?.first_name || "Oyuncu";
 
 let balance = 0, currentEnergy = 0, lastFreeSpin = 0, spinCount = 0;
-let adCount = 0, lastAdHour = new Date().getHours();
+let lastAdHour = new Date().getHours();
 let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, lastUpdate = Date.now();
 let autoClickInterval = null;
+
+// 🔥 YENİ: REKLAM SAYAÇLARI VE COOLDOWN DEĞİŞKENLERİ 🔥
+let turboAdCount = 0;
+let energyAdCount = 0;
+let lastTurboAdTime = 0;
+let lastEnergyAdTime = 0;
+const AD_COOLDOWN_MS = 12 * 60 * 1000; // 12 Dakika bekleme süresi
 
 // 🔥 AKTİFLİK KONTROLÜ İÇİN ZAMANLAYICI DEĞİŞKENİ 🔥
 let inactivityTimer = null; 
@@ -64,9 +71,20 @@ if (userId) {
             balance = data.balance || 0;
             lastFreeSpin = data.lastFreeSpin || 0;
             spinCount = data.spinCount || 0;
-            adCount = data.adCount || 0;
             
-            if (new Date().getHours() !== (data.lastAdHour || 0)) adCount = 0;
+            // Saat değiştiyse reklam limitlerini sıfırla
+            if (new Date().getHours() !== (data.lastAdHour || 0)) {
+                turboAdCount = 0;
+                energyAdCount = 0;
+                lastAdHour = new Date().getHours();
+            } else {
+                turboAdCount = data.turboAdCount || 0;
+                energyAdCount = data.energyAdCount || 0;
+                lastAdHour = data.lastAdHour || 0;
+            }
+            
+            lastTurboAdTime = data.lastTurboAdTime || 0;
+            lastEnergyAdTime = data.lastEnergyAdTime || 0;
 
             const savedEnergy = data.energy || 0;
             const savedTime = data.lastUpdate || Date.now();
@@ -77,7 +95,10 @@ if (userId) {
             currentEnergy = 500;
             lastFreeSpin = 0;
             spinCount = 0;
-            adCount = 0;
+            turboAdCount = 0;
+            energyAdCount = 0;
+            lastTurboAdTime = 0;
+            lastEnergyAdTime = 0;
             lastUpdate = Date.now();
             bulutaYaz();
         }
@@ -126,7 +147,6 @@ function tick() {
 
     if (currentEnergy < 500 && now - lastUpdate >= 60000) {
         currentEnergy++; lastUpdate = now; updateUI(); 
-        // Sayaç enerjiyi artırdığında da sessizce kaydet
         bulutaYaz();
     }
 }
@@ -162,11 +182,7 @@ const handleTap = (e) => {
     }
     updateUI();
 
-    // 🔥 İŞTE SENİN İSTEDİĞİN SİSTEM BURASI 🔥
-    // Adam her tıkladığında geri sayımı sıfırla.
     clearTimeout(inactivityTimer);
-    
-    // Eğer adam 1.5 saniye boyunca ekrana hiç dokunmazsa aktifliğini kaybetti say ve buluta kaydet!
     inactivityTimer = setTimeout(() => {
         bulutaYaz();
     }, 1500); 
@@ -234,22 +250,54 @@ if (spinBtnEl) {
     };
 }
 
-// 8. 🚀 REKLAM VE TURBO MOTORU
+// 8. 🚀 REKLAM VE TURBO MOTORU (YENİ SİSTEM)
 window.watchAdForEnergy = () => {
     if (isAutoClicking || isSpinning) return;
+    
+    const now = Date.now();
+    
+    if (energyAdCount >= 5) {
+        return alert("Saatlik Enerji Reklamı limitin (5/5) doldu! Lütfen bir sonraki saati bekle.");
+    }
+    
+    if (now - lastEnergyAdTime < AD_COOLDOWN_MS) {
+        const remainingMs = AD_COOLDOWN_MS - (now - lastEnergyAdTime);
+        const remainingMinutes = Math.ceil(remainingMs / 60000);
+        return alert(`Sonraki enerji reklamını izleyebilmek için ${remainingMinutes} dakika daha beklemelisin.`);
+    }
+
     if (confirm("+250 Enerji ister misin?")) {
         currentEnergy = Math.min(500, currentEnergy + 250);
-        updateUI(); bulutaYaz();
+        energyAdCount++;
+        lastEnergyAdTime = now;
+        updateUI(); 
+        bulutaYaz();
     }
 };
 
 window.startTurboMode = () => {
     if (isAutoClicking) return;
-    if (adCount >= 20) return alert("Saatlik Turbo limitin doldu!");
-    if (currentEnergy < 100) return alert("Turbo için en az 100 enerji gerekli.");
+    
+    const now = Date.now();
+    
+    if (turboAdCount >= 5) {
+        return alert("Saatlik Turbo Reklamı limitin (5/5) doldu! Lütfen bir sonraki saati bekle.");
+    }
+    
+    if (now - lastTurboAdTime < AD_COOLDOWN_MS) {
+        const remainingMs = AD_COOLDOWN_MS - (now - lastTurboAdTime);
+        const remainingMinutes = Math.ceil(remainingMs / 60000);
+        return alert(`Sonraki turbo reklamını izleyebilmek için ${remainingMinutes} dakika daha beklemelisin.`);
+    }
+    
+    if (currentEnergy < 100) {
+        return alert("Turbo için en az 100 enerji gerekli.");
+    }
 
     if (confirm("Otomasyon başlasın mı?")) {
-        adCount++; isAutoClicking = true;
+        turboAdCount++; 
+        lastTurboAdTime = now;
+        isAutoClicking = true;
         document.body.classList.add('turbo-active');
         const statusText = document.getElementById('turbo-status');
         if (statusText) statusText.style.display = 'block';
@@ -275,7 +323,7 @@ function stopAutoClicker() {
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
     updateUI(); 
-    bulutaYaz(); // Turbo bittiği an her şeyi kaydet
+    bulutaYaz(); 
 }
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
@@ -286,8 +334,11 @@ function bulutaYaz() {
         energy: currentEnergy, 
         lastFreeSpin: lastFreeSpin, 
         spinCount: spinCount, 
-        adCount: adCount, 
-        lastAdHour: new Date().getHours(), 
+        turboAdCount: turboAdCount,
+        energyAdCount: energyAdCount,
+        lastTurboAdTime: lastTurboAdTime,
+        lastEnergyAdTime: lastEnergyAdTime,
+        lastAdHour: lastAdHour, 
         username: backupName, 
         lastUpdate: Date.now() 
     }).catch(error => console.error("Firebase Yazma Hatası:", error));
@@ -301,7 +352,10 @@ function updateUI() {
 
     document.getElementById('energy-text').textContent = `${currentEnergy} / 500`;
     document.getElementById('energy-bar').style.width = `${(currentEnergy / 500) * 100}%`;
-    document.getElementById('ad-count').textContent = adCount;
+    
+    // UI'da toplam reklam izleme sayısını göstermek istersen ikisini toplayabilirsin
+    const adCountEl = document.getElementById('ad-count');
+    if(adCountEl) adCountEl.textContent = (turboAdCount + energyAdCount);
 
     const energySection = document.querySelector('.energy-section');
     const energyWarning = document.getElementById('energy-warning');
