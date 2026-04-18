@@ -181,7 +181,7 @@ if (spinBtnEl) {
     spinBtnEl.onclick = () => {
         if (isSpinning) return;
         const now = Date.now();
-        const cost = Math.min(500, 100 + (spinCount * 50));
+        const cost = Math.min(300, 100 + (spinCount * 25));
         const isDailyFree = (now - lastFreeSpin >= 86400000);
 
         if (freeRoundsLeft <= 0 && !isDailyFree && balance < cost) return alert("Bakiye Yetersiz!");
