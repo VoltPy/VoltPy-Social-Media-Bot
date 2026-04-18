@@ -1,7 +1,7 @@
 /**
- * VOLTPY TAPPER & CASINO - V37 NİHAİ KUSURSUZ BACKEND (GÜVENLİ ÇIKIŞ)
+ * VOLTPY TAPPER & CASINO - V38 (AKTİFLİK KONTROLÜ / DEBOUNCE SİSTEMİ)
  * Geliştirici: Berke (VoltPy)
- * Çözüm: "Çark ücreti ve bakiye uyumsuzluğu" çözüldü, kullanıcı çıkışında otomatik veri yedekleme eklendi.
+ * Çözüm: 30 tıklama sınırı kaldırıldı. Kullanıcı tıklamayı bıraktığı (inaktif olduğu) an anında buluta kayıt yapılır.
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -35,6 +35,9 @@ let freeRoundsLeft = 0, isSpinning = false, isAutoClicking = false;
 let currentRotation = 0, lastUpdate = Date.now();
 let autoClickInterval = null;
 
+// 🔥 AKTİFLİK KONTROLÜ İÇİN ZAMANLAYICI DEĞİŞKENİ 🔥
+let inactivityTimer = null; 
+
 // 3. 🎰 ÖDÜL TABLOSU
 const rewards = [
     { text: "BOŞ", val: 0, weight: 150 },
@@ -47,7 +50,6 @@ const rewards = [
     { text: "⚡ FULL", val: 500, type: "energy", weight: 30 }
 ];
 
-// 🔥 FİYAT HESAPLAMA MERKEZİ (ARTIK HATA YAPMASI İMKANSIZ) 🔥
 function getSpinCost() {
     return Math.min(300, 100 + (spinCount * 25));
 }
@@ -109,7 +111,6 @@ function tick() {
     const spinBtn = document.getElementById('spin-button');
     const timerVal = document.getElementById('timer-val');
     
-    // Fiyatı merkezden çekiyoruz
     const cost = getSpinCost();
 
     if (spinBtn) {
@@ -124,12 +125,14 @@ function tick() {
     }
 
     if (currentEnergy < 500 && now - lastUpdate >= 60000) {
-        currentEnergy++; lastUpdate = now; updateUI(); bulutaYaz();
+        currentEnergy++; lastUpdate = now; updateUI(); 
+        // Sayaç enerjiyi artırdığında da sessizce kaydet
+        bulutaYaz();
     }
 }
 setInterval(tick, 1000);
 
-// 6. 🎯 TAPPER VE MODAL KONTROLÜ
+// 6. 🎯 TAPPER VE AKTİFLİK KONTROLÜ
 const tapBtn = document.getElementById('tap-button');
 
 window.closeEnergyModal = () => {
@@ -158,7 +161,15 @@ const handleTap = (e) => {
         }
     }
     updateUI();
-    if (balance % 30 === 0) bulutaYaz();
+
+    // 🔥 İŞTE SENİN İSTEDİĞİN SİSTEM BURASI 🔥
+    // Adam her tıkladığında geri sayımı sıfırla.
+    clearTimeout(inactivityTimer);
+    
+    // Eğer adam 1.5 saniye boyunca ekrana hiç dokunmazsa aktifliğini kaybetti say ve buluta kaydet!
+    inactivityTimer = setTimeout(() => {
+        bulutaYaz();
+    }, 1500); 
 };
 
 function createPlusOne(x, y) {
@@ -181,7 +192,6 @@ if (spinBtnEl) {
         if (isSpinning) return;
         const now = Date.now();
         
-        // Fiyatı yine aynı merkezden çekiyoruz! Desync imkansız.
         const cost = getSpinCost();
         const isDailyFree = (now - lastFreeSpin >= 86400000);
 
@@ -248,7 +258,6 @@ window.startTurboMode = () => {
             if (currentEnergy > 0) {
                 balance++; currentEnergy--; updateUI();
                 createPlusOne(window.innerWidth / 2, window.innerHeight / 2);
-                if (currentEnergy % 25 === 0) bulutaYaz();
             } else { 
                 stopAutoClicker(); 
             }
@@ -265,7 +274,8 @@ function stopAutoClicker() {
     document.body.classList.remove('turbo-active');
     const statusText = document.getElementById('turbo-status');
     if (statusText) statusText.style.display = 'none';
-    updateUI(); bulutaYaz();
+    updateUI(); 
+    bulutaYaz(); // Turbo bittiği an her şeyi kaydet
 }
 
 // 9. ✍️ FIREBASE VE ARAYÜZ
@@ -334,7 +344,7 @@ function drawWheel() {
     ctx.translate(-160, -160);
 }
 
-// 🔥 11. SİGORTA SİSTEMİ: KULLANICI OYUNDAN ÇIKARKEN ZORLA KAYDET 🔥
+// 11. SİGORTA SİSTEMİ: UYGULAMA KAPANIRKEN KESİN KAYDET
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === 'hidden') {
         bulutaYaz();
